@@ -1,0 +1,20 @@
+<div class="space-y-6">
+
+  <div>
+    <h1 class="text-3xl font-bold text-slate-800">
+      Buscar procesos
+    </h1>
+
+    <p class="mt-1 text-slate-500">
+      Consulta y analiza procesos de contratación pública del SECOP II.
+    </p>
+  </div>
+
+  <app-search-filters (onSearch)="search()">
+  </app-search-filters>
+
+  <app-results-table [processes]="processes">
+  </app-results-table>
+
+
+</div>

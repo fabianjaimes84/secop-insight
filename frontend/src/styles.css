@@ -1,0 +1,18 @@
+@import url("https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap");
+
+@import "tailwindcss";
+
+@plugin "flyonui";
+
+@import "flyonui/variants.css";
+
+/* Necesario para los componentes JS de FlyonUI */
+@source "../node_modules/flyonui/flyonui.js";
+
+body {
+  font-family:
+    "Segoe UI",
+    "Inter",
+    system-ui,
+    sans-serif;
+}
