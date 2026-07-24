@@ -6,6 +6,8 @@ from app.models.busqueda import BusquedaProceso
 
 
 class SecopService:
+    _catalogos_cache = None
+
     def __init__(self):
         self.repository = SecopRepository()
 
@@ -51,7 +53,22 @@ class SecopService:
     def obtener_catalogo(self, campo: str):
         datos = self.repository.obtener_catalogo(campo)
 
-        return [item[campo] for item in datos if item.get(campo)]
+        return sorted({item[campo] for item in datos if item.get(campo)})
+
+    def obtener_catalogos(self):
+
+        if self._catalogos_cache is not None:
+            print("📦 Catálogos obtenidos desde memoria")
+            return self._catalogos_cache
+
+        print("🌐 Consultando catálogos en SECOP...")
+
+        self._catalogos_cache = {
+            "estados": self.obtener_catalogo("estado_resumen"),
+            "tipos_proceso": self.obtener_catalogo("modalidad_de_contratacion"),
+        }
+
+        return self._catalogos_cache
 
     def buscar_procesos(self, filtros: BusquedaProceso):
         datos = self.repository.buscar_procesos(filtros)

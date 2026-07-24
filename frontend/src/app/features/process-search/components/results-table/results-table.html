@@ -47,7 +47,7 @@
 
             <th class="px-3 py-2 text-left font-semibold">NIT</th>
 
-            <th class="px-3 py-2 text-left font-semibold">Departamento</th>
+            <!--<th class="px-3 py-2 text-left font-semibold">Departamento</th>-->
 
             <!--<th class="px-3 py-2 text-left font-semibold">Ciudad</th>-->
 
@@ -64,21 +64,21 @@
         <tbody>
           @for (process of processes; track process.numero_proceso) {
             <tr class="border-t border-slate-200 hover:bg-slate-50">
-              <td class="px-3 py-2 whitespace-nowrap">
+              <td class="px-3 py-2 min-w-[180px]">
                 {{ process.numero_proceso }}
               </td>
 
-              <td class="px-3 py-2 min-w-[250px]">
+              <td class="px-3 py-2 min-w-[200px]">
                 {{ process.entidad }}
               </td>
 
-              <td class="px-3 py-2 whitespace-nowrap">
+              <td class="px-3 py-2 min-w-[50px]">
                 {{ process.nit_entidad }}
               </td>
 
-              <td class="px-3 py-2 whitespace-nowrap">
+              <!--<td class="px-3 py-2 whitespace-nowrap">
                 {{ process.departamento }}
-              </td>
+              </td>-->
 
               <!--<td class="px-3 py-2 whitespace-nowrap">
                 {{ process.ciudad }}
@@ -88,11 +88,11 @@
                 {{ process.objeto }}
               </td>
 
-              <td class="px-3 py-2 whitespace-nowrap">
+              <td class="px-3 py-2 min-w-[180px]">
                 {{ process.modalidad }}
               </td>
 
-              <td class="px-3 py-2 whitespace-nowrap">
+              <td class="px-3 py-2 min-w-[180px]">
                 {{ process.estado }}
               </td>
 

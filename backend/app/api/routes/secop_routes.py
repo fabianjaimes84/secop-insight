@@ -27,6 +27,11 @@ def obtener_catalogo(campo: str):
     return secop_service.obtener_catalogo(campo)
 
 
+@router.get("/catalogos")
+def obtener_catalogos():
+    return secop_service.obtener_catalogos()
+
+
 @router.post("/busqueda")
 def buscar_procesos(filtros: BusquedaProceso):
     return secop_service.buscar_procesos(filtros)
