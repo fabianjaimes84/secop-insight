@@ -1,92 +1,122 @@
 <app-card>
+  <!-- Encabezado -->
+  <div class="mb-2 flex items-center justify-between">
+    <div>
+      <h2 class="text-lg font-semibold text-slate-800">Resultados</h2>
 
-    <!-- Encabezado -->
-    <div class="mb-6 flex items-center justify-between">
-
-        <div>
-            <h2 class="text-xl font-semibold text-slate-800">
-                Resultados
-            </h2>
-
-            <p class="mt-1 text-sm text-slate-500">
-                Aquí se mostrarán los procesos encontrados.
-            </p>
-        </div>
-
-        <span class="rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-600">
-            {{ processes.length }} resultados
-        </span>
-
+      <p class="mt-1 text-xs text-slate-500">Aquí se mostrarán los procesos encontrados.</p>
     </div>
 
-    <!-- Estado vacío -->
-    @if (processes.length === 0) {
+    <span class="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600">
+      {{ processes.length }} resultados
+    </span>
+  </div>
 
+  <!-- Estado vacío -->
+  @if (processes.length === 0) {
     <div
-        class="flex min-h-[320px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200">
+      class="flex min-h-[320px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200"
+    >
+      <div class="mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-slate-100">
+        <i class="fa-solid fa-magnifying-glass text-lg text-slate-400"></i>
+      </div>
 
-        <div class="mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-slate-100">
-            <i class="fa-solid fa-magnifying-glass text-3xl text-slate-400"></i>
-        </div>
+      <h3 class="text-lg font-semibold text-slate-700">No hay resultados</h3>
 
-        <h3 class="text-xl font-semibold text-slate-700">
-            No hay resultados
-        </h3>
-
-        <p class="mt-3 max-w-lg text-center text-sm leading-6 text-slate-500">
-            Utiliza los filtros de búsqueda y presiona
-            <strong>Buscar</strong> para consultar procesos del SECOP II.
-        </p>
-
+      <p class="mt-2 max-w-lg text-center text-xs leading-6 text-slate-500">
+        Utiliza los filtros de búsqueda y presiona
+        <strong>Buscar</strong> para consultar procesos del SECOP II.
+      </p>
     </div>
-
-    }
-
-    @else {
-
+  } @else {
     <div class="overflow-x-auto">
+      <table class="min-w-full text-xs">
+        <!--<thead class="bg-slate-50">
+          <tr>
+            <th class="px-4 py-2 text-left">Proceso</th>
 
-        <table class="min-w-full text-sm">
+            <th class="px-4 py-2 text-left">Entidad</th>
+          </tr>
+        </thead>-->
 
-            <thead class="bg-slate-50">
+        <thead class="sticky top-0 bg-slate-50">
+          <tr>
+            <th class="px-3 py-2 text-left font-semibold">Proceso</th>
 
-                <tr>
+            <th class="px-3 py-2 text-left font-semibold">Entidad</th>
 
-                    <th class="px-6 py-3 text-left">
-                        Proceso
-                    </th>
+            <th class="px-3 py-2 text-left font-semibold">NIT</th>
 
-                    <th class="px-6 py-3 text-left">
-                        Entidad
-                    </th>
+            <th class="px-3 py-2 text-left font-semibold">Departamento</th>
 
-                </tr>
+            <!--<th class="px-3 py-2 text-left font-semibold">Ciudad</th>-->
 
-            </thead>
+            <th class="px-3 py-2 text-left font-semibold">Objeto</th>
 
-            <tbody>
+            <th class="px-3 py-2 text-left font-semibold">Modalidad</th>
 
-                @for (process of processes; track process.numero_proceso) {
+            <th class="px-3 py-2 text-left font-semibold">Estado</th>
 
-                <tr class="border-t border-slate-200">
+            <th class="px-3 py-2 text-left font-semibold">Publicación</th>
+          </tr>
+        </thead>
 
-                    <td class="px-6 py-4">
-                        {{ process.numero_proceso }}
-                    </td>
+        <tbody>
+          @for (process of processes; track process.numero_proceso) {
+            <tr class="border-t border-slate-200 hover:bg-slate-50">
+              <td class="px-3 py-2 whitespace-nowrap">
+                {{ process.numero_proceso }}
+              </td>
 
-                    <td class="px-6 py-4">
-                        {{ process.entidad }}
-                    </td>
+              <td class="px-3 py-2 min-w-[250px]">
+                {{ process.entidad }}
+              </td>
 
-                </tr>
+              <td class="px-3 py-2 whitespace-nowrap">
+                {{ process.nit_entidad }}
+              </td>
 
-                }
+              <td class="px-3 py-2 whitespace-nowrap">
+                {{ process.departamento }}
+              </td>
 
-            </tbody>
+              <!--<td class="px-3 py-2 whitespace-nowrap">
+                {{ process.ciudad }}
+              </td>-->
 
-        </table>
+              <td class="px-2 py-1 min-w-[400px] whitespace-normal">
+                {{ process.objeto }}
+              </td>
 
+              <td class="px-3 py-2 whitespace-nowrap">
+                {{ process.modalidad }}
+              </td>
+
+              <td class="px-3 py-2 whitespace-nowrap">
+                {{ process.estado }}
+              </td>
+
+              <td class="px-3 py-2 whitespace-nowrap">
+                {{ process.fecha_publicacion }}
+              </td>
+            </tr>
+          }
+        </tbody>
+
+        <!--<tbody>
+          @for (process of processes; track process.numero_proceso) {
+            <tr class="border-t border-slate-200">
+              <td class="px-4 py-2">
+                {{ process.numero_proceso }}
+              </td>
+
+              <td class="px-4 py-2">
+                {{ process.entidad }}
+              </td>
+            </tr>
+          }
+        </tbody>-->
+      </table>
     </div>
-
-    }
+  }
 </app-card>

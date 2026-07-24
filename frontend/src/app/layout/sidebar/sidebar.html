@@ -1,79 +1,72 @@
-<aside class="flex h-screen w-60 flex-col bg-[#1E3A8A] text-white">
-
+<aside class="flex h-screen w-55 flex-col bg-[#1E3A8A] text-white">
   <!-- Logo -->
-  <div class="border-b border-blue-700 p-6">
+  <div class="flex justify-center">
+    <img src="images/logo-si.png" alt="SECOP Insight" class="h-32 w-auto" />
+  </div>
 
+  <div class="border-b border-blue-700 p-2 text-center">
     <h1 class="text-xl font-bold">
       SECOP II
-      <span class="text-red-900"> | </span>
+      <span class="text-red-600"> | </span>
       <span class="text-blue-300">Insight</span>
     </h1>
 
-    <p class="mt-1 text-xs text-blue-200">
-      Plataforma Inteligente para la Contratación Pública
-    </p>
-
+    <p class="mt-1 text-xs text-blue-200">Plataforma Inteligente para la Contratación Pública</p>
   </div>
 
   <!-- Menú -->
-  <nav class="flex-1 p-4">
-
-    <ul class="space-y-2">
-
+  <nav class="flex-1 p-1">
+    <ul class="space-y-1">
       <li>
-        <a routerLink="/dashboard" class="flex items-center gap-5 rounded-xl px-5 py-3 bg-[#2563EB]">
-          <fa-icon [icon]="faGaugeHigh" class="w-7 text-2xl shrink-0"></fa-icon>
+        <a routerLink="/dashboard" class="flex items-center gap-5 rounded-sm px-5 py-2 bg-[#2563EB]">
+          <fa-icon [icon]="faGaugeHigh" class="w-5 text-xl shrink-0"></fa-icon>
           <span>Dashboard</span>
         </a>
       </li>
 
       <li>
-        <a href="#" class="flex items-center gap-5 rounded-xl px-5 py-3 hover:bg-[#2563EB]">
-          <fa-icon [icon]="faMagnifyingGlass" class="w-7 text-2xl shrink-0"></fa-icon>
+        <a href="#" class="flex items-center gap-5 rounded-sm px-5 py-2 hover:bg-[#2563EB]">
+          <fa-icon [icon]="faMagnifyingGlass" class="w-5 text-xl shrink-0"></fa-icon>
           <span>Buscar procesos</span>
         </a>
       </li>
 
       <li>
-        <a href="#" class="flex items-center gap-5 rounded-xl px-5 py-3 hover:bg-[#2563EB]">
-          <fa-icon [icon]="faBookmark" class="w-7 text-2xl shrink-0"></fa-icon>
+        <a href="#" class="flex items-center gap-5 rounded-sm px-5 py-2 hover:bg-[#2563EB]">
+          <fa-icon [icon]="faBookmark" class="w-5 text-xl shrink-0"></fa-icon>
           <span>Seguimiento</span>
         </a>
       </li>
 
       <li>
-        <a href="#" class="flex items-center gap-5 rounded-xl px-5 py-3 hover:bg-[#2563EB]">
-          <fa-icon [icon]="faFileLines" class="w-7 text-2xl shrink-0"></fa-icon>
+        <a href="#" class="flex items-center gap-5 rounded-sm px-5 py-2 hover:bg-[#2563EB]">
+          <fa-icon [icon]="faFileLines" class="w-5 text-xl shrink-0"></fa-icon>
           <span>Reportes</span>
         </a>
       </li>
 
       <li>
-        <a href="#" class="flex items-center gap-5 rounded-xl px-5 py-3 hover:bg-[#2563EB]">
-          <fa-icon [icon]="faBrain" class="w-7 text-2xl shrink-0"></fa-icon>
+        <a href="#" class="flex items-center gap-5 rounded-sm px-5 py-2 hover:bg-[#2563EB]">
+          <fa-icon [icon]="faBrain" class="w-5 text-xl shrink-0"></fa-icon>
           <span>IA</span>
         </a>
       </li>
 
       <li>
-        <a href="#" class="flex items-center gap-5 rounded-xl px-5 py-3 hover:bg-[#2563EB]">
-          <fa-icon [icon]="faGear" class="w-7 text-2xl shrink-0"></fa-icon>
+        <a href="#" class="flex items-center gap-5 rounded-sm px-5 py-2 hover:bg-[#2563EB]">
+          <fa-icon [icon]="faGear" class="w-5 text-xl shrink-0"></fa-icon>
           <span>Configuración</span>
         </a>
       </li>
-
     </ul>
-
   </nav>
 
   <!-- Footer -->
-  <div class="border-t border-blue-700 p-4">
+  <div class="border-t border-blue-700 p-1">
+    <button class="flex w-full items-center gap-4 rounded-sm px-5 py-3 transition-colors hover:bg-[#2563EB]">
+      <fa-icon [icon]="faCircleQuestion" class="text-xl"></fa-icon>
 
-    <button class="w-full rounded-lg px-5 py-3 text-left hover:bg-[#2563EB]">
-      <fa-icon [icon]="faCircleQuestion" class="w-7 text-2xl shrink-0"></fa-icon>
       <span>Centro de ayuda</span>
     </button>
-
   </div>
-
 </aside>

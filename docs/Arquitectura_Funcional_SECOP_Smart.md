@@ -1,308 +1,118 @@
-# Arquitectura Funcional - SECOP Insight
+# SECOP Insight
 
-## Objetivo
-
-Desarrollar una plataforma web que permita consultar, analizar y realizar seguimiento a los procesos de contratación publicados en **SECOP II**, mediante filtros avanzados, una interfaz moderna y escalable, generación de reportes y futuras capacidades de análisis documental e Inteligencia Artificial.
-
-El proyecto integra un **backend desarrollado en FastAPI** y un **frontend desarrollado en Angular 20**, proporcionando una solución desacoplada, escalable y mantenible para la consulta de información pública de contratación estatal.
+> Plataforma para consultar, analizar y realizar seguimiento a los procesos de contratación pública publicados en SECOP II.
 
 ---
 
-# Arquitectura del sistema
+## Descripción
 
-SECOP Insight implementa una arquitectura multicapa que desacopla la presentación, la lógica de negocio y el acceso a los datos.
+SECOP Insight es una plataforma web desarrollada para facilitar la consulta y análisis de los procesos de contratación pública publicados en SECOP II.
+
+El proyecto implementa una arquitectura desacoplada basada en Angular 20 y FastAPI, permitiendo realizar búsquedas avanzadas, consumir la API pública de Datos Abiertos de SECOP II y presentar la información de manera clara, escalable y mantenible.
+
+Actualmente el proyecto se encuentra en desarrollo y está diseñado para crecer con nuevas funcionalidades como reportes, dashboards, gestión documental e Inteligencia Artificial.
+
+---
+
+# Características
+
+- Consulta de procesos de contratación.
+- Búsqueda por palabra clave.
+- Filtros por estado.
+- Filtros por modalidad de contratación.
+- Filtros por fechas.
+- Arquitectura multicapa.
+- Backend desarrollado con FastAPI.
+- Frontend desarrollado con Angular 20.
+- Integración con la API pública de SECOP II.
+
+---
+
+# Tecnologías
+
+## Frontend
+
+- Angular 20
+- TypeScript
+- Tailwind CSS
+- FlyonUI
+- RxJS
+
+## Backend
+
+- Python
+- FastAPI
+- Pydantic
+- HTTPX
+
+---
+
+# Arquitectura
 
 ```text
-                    Usuario
-                       │
-                       ▼
-                Angular 20
-                       │
-                 HttpClient
-                       │
-                       ▼
-                FastAPI (API)
-                       │
-                       ▼
+                   Usuario
+                      │
+                      ▼
+              Search Filters
+                      │
+                      ▼
+                Search Page
+                      │
+                      ▼
+              Process Search
+                      │
+                POST /busqueda
+                      │
+                      ▼
+                FastAPI API
+                      │
+                      ▼
                   Services
-                       │
-                       ▼
+                      │
+                      ▼
                Repositories
-                       │
-                       ▼
-      API Datos Abiertos SECOP II
+                      │
+                      ▼
+        API Datos Abiertos SECOP II
 ```
 
 ---
 
-# Arquitectura del Frontend
-
-El frontend se desarrolla bajo una arquitectura basada en **Features**, utilizando componentes **Standalone** y separando claramente las responsabilidades de cada módulo.
+# Arquitectura del Proyecto
 
 ```text
-frontend/
-└── src/
-    └── app/
-        ├── core/
-        │   ├── constants/
-        │   ├── models/
-        │   └── services/
-        │
-        ├── features/
-        │   └── process-search/
-        │       ├── components/
-        │       ├── pages/
-        │       └── services/
-        │
-        ├── layout/
-        └── shared/
-```
+secop-insight/
 
-### Core
-
-Contiene los recursos reutilizables de toda la aplicación.
-
-- Constantes.
-- Modelos.
-- Configuración.
-- Servicios compartidos.
-
-### Features
-
-Agrupa la funcionalidad por dominio del negocio.
-
-Actualmente:
-
-- Process Search.
-
-### Layout
-
-Define la estructura principal de la aplicación.
-
-- Header.
-- Sidebar.
-- Contenedor principal.
-
-### Shared
-
-Componentes reutilizables entre diferentes módulos.
-
----
-
-# Arquitectura del Backend
-
-El backend sigue una arquitectura por capas basada en separación de responsabilidades.
-
-## API
-
-Expone los endpoints REST y recibe las solicitudes HTTP.
-
-## Services
-
-Implementa la lógica de negocio del sistema.
-
-## Repositories
-
-Gestiona la comunicación con la API pública de Datos Abiertos de SECOP II.
-
-## Models
-
-Define los modelos internos mediante Pydantic.
-
-## Core
-
-Centraliza la configuración y variables de entorno.
-
----
-
-# Flujo funcional
-
-```text
-Usuario
-
-   │
-
-Realiza búsqueda
-
-   │
-
-Angular
-
-   │
-
-HttpClient
-
-   │
-
-FastAPI
-
-   │
-
-Service
-
-   │
-
-Repository
-
-   │
-
-API Datos Abiertos SECOP II
-
-   │
-
-Transformación de datos
-
-   │
-
-Respuesta JSON
-
-   │
-
-Angular
-
-   │
-
-Tabla de resultados
+├── backend/
+│   ├── api/
+│   ├── services/
+│   ├── repositories/
+│   ├── models/
+│   └── core/
+│
+├── frontend/
+│   ├── core/
+│   ├── features/
+│   ├── shared/
+│   └── layout/
+│
+└── docs/
 ```
 
 ---
 
-# Módulos del sistema
-
-## Módulo 1 - Consulta de procesos
-
-Permite consultar procesos de contratación publicados en SECOP II utilizando diferentes criterios de búsqueda.
-
-### Funcionalidades implementadas
+# Funcionalidades Implementadas
 
 | Funcionalidad | Estado |
-|--------------|--------|
-| Consulta de procesos | ✅ Implementado |
-| Búsqueda por palabra clave | ✅ Implementado |
-| Filtro por estado | ✅ Implementado |
-| Filtro por modalidad | ✅ Implementado |
-| Fecha de publicación | ✅ Implementado |
-| Fecha de presentación de ofertas | ✅ Implementado |
-| Catálogos dinámicos | ✅ Implementado |
-| Consumo de API desde Angular | ✅ Implementado |
-| Visualización de resultados | ✅ Implementado |
-
-### Funcionalidades planificadas
-
-| Funcionalidad | Estado |
-|--------------|--------|
-| Datos de la entidad | 🔜 Planeado |
-| Número del proceso | 🔜 Planeado |
-| Código UNSPSC | 🔜 Planeado |
-| Departamento | 🔜 Planeado |
-| Ciudad | 🔜 Planeado |
-| Región | 🔜 Planeado |
-| Cuantía | 🔜 Planeado |
-| Paginación | 🔜 Planeado |
-| Ordenamiento | 🔜 Planeado |
-
----
-
-# Resultado esperado
-
-Cada búsqueda devuelve una colección de procesos con la siguiente información:
-
-| Campo |
-|--------|
-| Entidad |
-| NIT |
-| Departamento |
-| Ciudad |
-| Número del proceso |
-| Objeto |
-| Modalidad |
-| Estado |
-| Fecha de publicación |
-
----
-
-# Estado actual del proyecto
-
-## Backend ✅
-
-### Arquitectura
-
-- Arquitectura por capas.
-- Repository Pattern.
-- Modelos Pydantic.
-- Configuración mediante variables de entorno.
-
-### Integración
-
-- Integración con la API pública de Datos Abiertos de SECOP II.
-- Transformación del modelo externo al modelo interno del sistema.
-
-### Funcionalidades implementadas
-
-- Consulta de procesos.
-- Búsqueda avanzada.
-- Catálogos dinámicos.
-- Construcción dinámica de filtros.
-- API REST documentada mediante Swagger.
-
----
-
-## Frontend ✅
-
-### Arquitectura
-
-- Angular 20.
-- Componentes Standalone.
-- Arquitectura basada en Features.
-- Modelos tipados mediante TypeScript.
-- Configuración mediante Environments.
-- Endpoints centralizados.
-- Rutas centralizadas.
-
-### Funcionalidades implementadas
-
-- Formulario de búsqueda.
-- Tabla de resultados.
-- Integración con FastAPI.
-- Consumo de la API mediante HttpClient.
-
----
-
-# Funcionalidades futuras
-
-## Reportes
-
-- Exportación de resultados a Excel.
-- Exportación a Word.
-- Exportación a PDF.
-
-## Gestión documental
-
-- Consulta del detalle del proceso.
-- Descarga automática de documentos.
-- Organización documental por proceso.
-
-## Dashboard
-
-- Indicadores de contratación.
-- Estadísticas por entidad.
-- Estadísticas por modalidad.
-- Tendencias de contratación.
-
-## Inteligencia Artificial
-
-- Resumen automático de procesos.
-- Análisis documental.
-- Comparación de pliegos.
-- Generación de observaciones técnicas.
-- Asistente para análisis contractual.
-
-## Seguimiento
-
-- Procesos favoritos.
-- Alertas automáticas.
-- Seguimiento del estado de los procesos.
-- Historial de cambios.
+|---------------|--------|
+| Consulta de procesos | ✅ |
+| Búsqueda avanzada | ✅ |
+| Filtro por estado | ✅ |
+| Filtro por modalidad | ✅ |
+| Filtro por fechas | ✅ |
+| Catálogos dinámicos | ✅ |
+| Integración Angular - FastAPI | ✅ |
+| Visualización de resultados | ✅ |
 
 ---
 
@@ -310,291 +120,82 @@ Cada búsqueda devuelve una colección de procesos con la siguiente información
 
 ## Versión 1.0
 
-- ✅ Backend FastAPI.
-- ✅ Integración con SECOP II.
-- ✅ API REST.
-- ✅ Angular 20.
-- ✅ Consulta de procesos.
-- ✅ Filtros avanzados.
-- ✅ Integración Frontend - Backend.
+- Backend FastAPI
+- Integración con SECOP II
+- API REST
+- Angular 20
+- Consulta de procesos
+- Filtros avanzados
+
+## Próximas versiones
+
+- Paginación
+- Ordenamiento
+- Exportación a Excel
+- Exportación a Word
+- Exportación a PDF
+- Dashboard de indicadores
+- Gestión documental
+- Inteligencia Artificial
+- Alertas automáticas
+- Seguimiento de procesos
 
 ---
 
-## Versión 1.1
+# Instalación
 
-- Paginación.
-- Ordenamiento.
-- Exportación a Excel.
+## Backend
 
----
+```bash
+cd backend
 
-## Versión 1.2
+python -m venv venv
 
-- Exportación a Word.
-- Exportación a PDF.
-- Descarga automática de documentos.
+pip install -r requirements.txt
 
----
+uvicorn app.main:app --reload
+```
 
-## Versión 1.3
+## Frontend
 
-- Dashboard de indicadores.
-- Métricas de contratación.
-- Estadísticas por entidad y modalidad.
+```bash
+cd frontend
 
----
+npm install
 
-## Versión 2.0
-
-- Inteligencia Artificial.
-- Resumen automático de procesos.
-- Clasificación documental.
-- Comparación de pliegos.
-- Generación automática de observaciones técnicas.
-
----
-
-# Principios de diseño
-
-SECOP Insight se desarrolla bajo los siguientes principios:
-
-- Arquitectura modular.
-- Separación de responsabilidades.
-- Escalabilidad.
-- Reutilización de componentes.
-- Tipado fuerte mediante TypeScript y Pydantic.
-- Configuración centralizada.
-- Mantenibilidad.
-- Facilidad para incorporar nuevas funcionalidades sin afectar los módulos existentes.
-
----
-
-# Diagramas de Arquitectura
-
-## Arquitectura General
-
-```mermaid
-flowchart TD
-
-    U[Usuario]
-
-    U --> A[Frontend - Angular 20]
-
-    A --> B[HttpClient]
-
-    B --> C[API REST - FastAPI]
-
-    C --> D[Services]
-
-    D --> E[Repositories]
-
-    E --> F[API Datos Abiertos SECOP II]
+ng serve
 ```
 
 ---
 
-# Arquitectura del Frontend
+# Documentación
 
-```mermaid
-flowchart TD
+La documentación técnica del proyecto se encuentra en la carpeta **docs/**.
 
-    APP[Angular App]
+Incluye:
 
-    APP --> CORE[Core]
-
-    APP --> FEATURES[Features]
-
-    APP --> SHARED[Shared]
-
-    APP --> LAYOUT[Layout]
-
-    CORE --> CONSTANTS[Constants]
-
-    CORE --> MODELS[Models]
-
-    CORE --> SERVICES[Services]
-
-    FEATURES --> SEARCH[Process Search]
-
-    SEARCH --> COMPONENTS[Components]
-
-    SEARCH --> PAGES[Pages]
-
-    SEARCH --> FEATURESERVICES[Services]
-```
+- Arquitectura del sistema
+- Arquitectura del Frontend
+- Arquitectura del Backend
+- Diagramas Mermaid
+- Flujo de consulta
+- Roadmap
+- Principios de diseño
 
 ---
 
-# Arquitectura del Backend
+# Estado del Proyecto
 
-```mermaid
-flowchart TD
+🚧 En desarrollo.
 
-    API[FastAPI]
-
-    API --> ROUTES[Routes]
-
-    ROUTES --> SERVICES[Services]
-
-    SERVICES --> REPOSITORIES[Repositories]
-
-    REPOSITORIES --> SECOP[API SECOP II]
-
-    SERVICES --> MODELS[Pydantic Models]
-
-    SERVICES --> CORE[Core]
-```
+Actualmente el proyecto continúa evolucionando con nuevas funcionalidades enfocadas en el análisis de contratación pública y automatización de procesos.
 
 ---
 
-# Flujo de Consulta de Procesos
+# Autor
 
-```mermaid
-sequenceDiagram
+**Fabián Jaimes**
 
-    participant U as Usuario
+Ingeniero de Sistemas
 
-    participant F as Angular
-
-    participant API as FastAPI
-
-    participant S as Service
-
-    participant R as Repository
-
-    participant SECOP as API SECOP II
-
-    U->>F: Realiza búsqueda
-
-    F->>API: GET /procesos
-
-    API->>S: Solicita información
-
-    S->>R: Obtener procesos
-
-    R->>SECOP: Consulta API
-
-    SECOP-->>R: Datos JSON
-
-    R-->>S: Datos transformados
-
-    S-->>API: Lista de procesos
-
-    API-->>F: JSON
-
-    F-->>U: Tabla de resultados
-```
-
----
-
-# Flujo de Búsqueda Avanzada
-
-```mermaid
-flowchart LR
-
-A[Formulario Angular]
-
---> B[Validación]
-
---> C[HttpClient]
-
---> D[POST /busqueda]
-
---> E[Service]
-
---> F[Repository]
-
---> G[SECOP II]
-
---> H[Transformación]
-
---> I[JSON]
-
---> J[Tabla de Resultados]
-```
-
----
-
-# Organización del Proyecto
-
-```mermaid
-flowchart TD
-
-ROOT[SECOP Insight]
-
-ROOT --> BACKEND[Backend]
-
-ROOT --> FRONTEND[Frontend]
-
-ROOT --> DOCS[Docs]
-
-BACKEND --> API
-
-BACKEND --> SERVICES
-
-BACKEND --> REPOSITORIES
-
-BACKEND --> MODELS
-
-BACKEND --> CORE
-
-FRONTEND --> APP
-
-APP --> FEATURES
-
-APP --> CORE2[Core]
-
-APP --> SHARED
-
-APP --> LAYOUT
-```
-
----
-
-# Roadmap del Proyecto
-
-```mermaid
-timeline
-
-title Evolución de SECOP Insight
-
-Sprint 1 : Backend
-         : Arquitectura
-         : API REST
-         : Repository Pattern
-         : Búsqueda Avanzada
-
-Sprint 2 : Frontend Angular
-         : Integración API
-         : Tabla
-         : Formulario
-
-Sprint 3 : Exportación
-         : Excel
-         : Paginación
-
-Sprint 4 : Gestión Documental
-         : Descarga
-         : Organización
-
-Sprint 5 : Inteligencia Artificial
-         : Resúmenes
-         : Comparación
-         : Observaciones Técnicas
-```
-
----
-
-# Principios de Diseño
-
-El desarrollo de **SECOP Insight** se basa en los siguientes principios:
-
-- Arquitectura modular.
-- Separación de responsabilidades.
-- Escalabilidad.
-- Reutilización de componentes.
-- Tipado fuerte mediante TypeScript y Pydantic.
-- Configuración centralizada mediante `environment` y `core/constants`.
-- Mantenibilidad.
-- Bajo acoplamiento entre frontend y backend.
-- Preparado para futuras integraciones con Inteligencia Artificial.
+Proyecto desarrollado con fines académicos y de fortalecimiento profesional.
