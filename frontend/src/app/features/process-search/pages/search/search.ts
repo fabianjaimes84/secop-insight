@@ -17,9 +17,21 @@ import { SearchRequest } from '../../models/search-request.model';
 })
 export class Search {
 
+  // ==========================================
+  // Servicios
+  // ==========================================
+
   private readonly processSearch = inject(ProcessSearch);
 
+  // ==========================================
+  // Resultados de la búsqueda
+  // ==========================================
+
   processes: Proceso[] = [];
+
+  // ==========================================
+  // Ejecutar búsqueda
+  // ==========================================
 
   search(filters: SearchRequest): void {
 
@@ -47,6 +59,17 @@ export class Search {
       }
 
     });
+
+  }
+
+  // ==========================================
+  // Limpiar resultados
+  // ==========================================
+
+  clearResults(): void {
+
+    // Vaciar la tabla de resultados
+    this.processes = [];
 
   }
 

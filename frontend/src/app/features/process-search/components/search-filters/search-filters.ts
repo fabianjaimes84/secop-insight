@@ -13,8 +13,19 @@ import { SearchService } from '../../services/search.service';
   styleUrl: './search-filters.scss',
 })
 export class SearchFilters implements OnInit {
+  // ==========================================
+  // Eventos enviados al componente padre
+  // ==========================================
+
   @Output()
   readonly onSearch = new EventEmitter<SearchRequest>();
+
+  @Output()
+  readonly onClear = new EventEmitter<void>();
+
+  // ==========================================
+  // Formulario y catálogos
+  // ==========================================
 
   searchForm: FormGroup;
 
@@ -40,23 +51,26 @@ export class SearchFilters implements OnInit {
     });
   }
 
+  // ==========================================
+  // Carga inicial de catálogos
+  // ==========================================
+
   ngOnInit(): void {
     this.searchService.getCatalogos().subscribe({
       next: (catalogos) => {
-        console.log('Catálogos recibidos');
-        console.log(catalogos);
-
         this.estados = catalogos.estados;
         this.tiposProceso = catalogos.tipos_proceso;
-
-        console.log(this.estados);
-        console.log(this.tiposProceso);
       },
+
       error: (error) => {
         console.error('Error cargando catálogos:', error);
       },
     });
   }
+
+  // ==========================================
+  // Valores iniciales del formulario
+  // ==========================================
 
   private getDefaultFilters(): SearchRequest {
     const today = new Date();
@@ -81,14 +95,23 @@ export class SearchFilters implements OnInit {
     };
   }
 
-  search(): void {
-    console.log('Filtros enviados:');
-    console.log(this.searchForm.getRawValue());
+  // ==========================================
+  // Ejecutar búsqueda
+  // ==========================================
 
+  search(): void {
     this.onSearch.emit(this.searchForm.getRawValue());
   }
 
+  // ==========================================
+  // Limpiar filtros
+  // ==========================================
+
   clear(): void {
+    // Restablecer filtros iniciales
     this.searchForm.reset(this.getDefaultFilters());
+
+    // Informar al componente padre
+    this.onClear.emit();
   }
 }

@@ -1,24 +1,44 @@
 <div class="space-y-2">
 
+  <!-- ==========================================
+       Página de búsqueda de procesos
+       ========================================== -->
+
   <div>
+
     <h1 class="text-lg font-bold text-slate-800">
       <!-- Buscar procesos -->
     </h1>
 
-    <p class="mt-1 text-slate-500 text-xs">
+    <p class="mt-1 text-xs text-slate-500">
       <!-- Consulta y analiza procesos de contratación pública del SECOP II. -->
     </p>
+
   </div>
 
+  <!-- ==========================================
+       Filtros de búsqueda
+       ========================================== -->
 
   <div>
-    <app-search-filters (onSearch)="search($event)">
+
+    <app-search-filters
+      (onSearch)="search($event)"
+      (onClear)="clearResults()">
     </app-search-filters>
+
   </div>
 
+  <!-- ==========================================
+       Tabla de resultados
+       ========================================== -->
+
   <div>
-    <app-results-table [processes]="processes">
+
+    <app-results-table
+      [processes]="processes">
     </app-results-table>
+
   </div>
 
 </div>
