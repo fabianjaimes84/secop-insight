@@ -2,12 +2,16 @@ import { Component, Input } from '@angular/core';
 
 import { Proceso } from '../../../../core/models/proceso';
 import { Card } from '../../../../shared/ui/card/card';
+import { ProcessDetail } from '../../../../shared/components/process-detail/process-detail';
 import { SMMLV } from '../../../../core/constants/app.constants';
 
 @Component({
   selector: 'app-results-table',
   standalone: true,
-  imports: [Card],
+  imports: [
+    Card,
+    ProcessDetail,
+  ],
   templateUrl: './results-table.html',
   styleUrl: './results-table.scss',
 })
@@ -21,6 +25,40 @@ export class ResultsTable {
   processes: Proceso[] = [];
 
   // ==========================================
+  // Estado del modal
+  // ==========================================
+  // Controla el proceso seleccionado y la
+  // apertura del modal de detalle.
+  // ==========================================
+
+  selectedProcess: Proceso | null = null;
+
+  detailOpen = false;
+
+  // ==========================================
+  // Abre el detalle del proceso seleccionado.
+  // ==========================================
+
+  openDetail(process: Proceso): void {
+
+    this.selectedProcess = process;
+    this.detailOpen = true;
+
+  }
+
+  // ==========================================
+  // Cierra el modal y limpia el proceso
+  // seleccionado.
+  // ==========================================
+
+  closeDetail(): void {
+
+    this.detailOpen = false;
+    this.selectedProcess = null;
+
+  }
+
+  // ==========================================
   // Devuelve la clase CSS según el estado
   // del proceso para mostrar una etiqueta
   // con un color representativo.
@@ -30,12 +68,10 @@ export class ResultsTable {
 
     const value = (estado ?? '').toLowerCase();
 
-    // Procesos publicados
     if (value.includes('public')) {
       return 'bg-green-100 text-green-700';
     }
 
-    // Procesos en etapa de ofertas o concurso
     if (
       value.includes('oferta') ||
       value.includes('concurso') ||
@@ -44,7 +80,6 @@ export class ResultsTable {
       return 'bg-yellow-100 text-yellow-700';
     }
 
-    // Procesos adjudicados o en evaluación
     if (
       value.includes('adjudicado') ||
       value.includes('evaluacion')
@@ -52,7 +87,6 @@ export class ResultsTable {
       return 'bg-blue-100 text-blue-700';
     }
 
-    // Procesos cancelados o revocados
     if (
       value.includes('cancel') ||
       value.includes('revocado') ||
@@ -61,12 +95,10 @@ export class ResultsTable {
       return 'bg-red-100 text-red-700';
     }
 
-    // Contratos celebrados
     if (value.includes('celebrado')) {
       return 'bg-indigo-100 text-indigo-700';
     }
 
-    // Estado por defecto
     return 'bg-slate-100 text-slate-700';
 
   }
@@ -86,36 +118,24 @@ export class ResultsTable {
 
     const date = new Date(fecha);
 
-    const fechaFormateada = new Intl.DateTimeFormat(
-      'es-CO',
-      {
+    return [
+      new Intl.DateTimeFormat('es-CO', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric',
-      }
-    ).format(date);
+      }).format(date),
 
-    const horaFormateada = new Intl.DateTimeFormat(
-      'es-CO',
-      {
+      new Intl.DateTimeFormat('es-CO', {
         hour: '2-digit',
         minute: '2-digit',
         hour12: true,
-      }
-    ).format(date);
-
-    return [
-      fechaFormateada,
-      horaFormateada,
+      }).format(date),
     ];
 
   }
 
   // ==========================================
   // Formatea valores monetarios.
-  //
-  // Ejemplo:
-  // $ 130.000.000,00
   // ==========================================
 
   formatMoneda(valor: number | string | null | undefined): string {
@@ -128,9 +148,7 @@ export class ResultsTable {
       return '$ 0,00';
     }
 
-    const numero = Number(valor);
-
-    return '$ ' + numero.toLocaleString(
+    return '$ ' + Number(valor).toLocaleString(
       'es-CO',
       {
         minimumFractionDigits: 2,
@@ -141,9 +159,7 @@ export class ResultsTable {
   }
 
   // ==========================================
-  // Calcula el equivalente del presupuesto
-  // en Salarios Mínimos Legales Mensuales
-  // Vigentes (SMMLV).
+  // Calcula la cuantía equivalente en SMMLV.
   // ==========================================
 
   formatSMMLV(valor: number | string | null | undefined): string {
@@ -156,10 +172,10 @@ export class ResultsTable {
       return '0,00 SMMLV';
     }
 
-    const numero = Number(valor);
-
     return (
-      (numero / SMMLV).toLocaleString(
+      (
+        Number(valor) / SMMLV
+      ).toLocaleString(
         'es-CO',
         {
           minimumFractionDigits: 2,
@@ -169,15 +185,5 @@ export class ResultsTable {
     );
 
   }
-
-  // ==========================================
-  // Próximamente
-  // ==========================================
-  //
-  // - Ver detalle del proceso.
-  // - Guardar proceso en seguimiento.
-  // - Ordenar por fecha de presentación.
-  //
-  // ==========================================
 
 }
