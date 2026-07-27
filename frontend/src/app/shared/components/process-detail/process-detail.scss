@@ -1,7 +1,6 @@
 /* ==========================================
    Animación del fondo (Backdrop)
    ========================================== */
-
 .animate-fade-in {
   animation: fadeIn 220ms ease;
 }
@@ -9,7 +8,6 @@
 /* ==========================================
    Animación del modal
    ========================================== */
-
 .animate-scale-in {
   animation: scaleIn 260ms ease;
   transform-origin: center;
@@ -18,29 +16,39 @@
 /* ==========================================
    Keyframes
    ========================================== */
-
 @keyframes fadeIn {
-
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes scaleIn {
-
   from {
     opacity: 0;
-    transform: scale(.95);
+    transform: scale(0.95);
   }
-
   to {
     opacity: 1;
     transform: scale(1);
   }
+}
 
+/* ==========================================
+   Scrollbar personalizado para el contenido
+   ========================================== */
+main::-webkit-scrollbar {
+  width: 8px;
+}
+
+main::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+main::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+main::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }

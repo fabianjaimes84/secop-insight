@@ -9,14 +9,14 @@ from app.api.routes.secop_routes import router as secop_router
 load_dotenv()
 
 app = FastAPI(
-    title="SECOP Smart API",
+    title="SECOP II | Insight API",
     description="Sistema para consulta de procesos SECOP II",
     version="1.0.0",
 )
 
 
 app = FastAPI(
-    title="SECOP Smart API",
+    title="SECOP II | Insight API",
     description="Sistema para consulta de procesos SECOP II",
     version="1.0.0",
 )
@@ -36,7 +36,7 @@ app.add_middleware(
 def inicio():
 
     return {
-        "mensaje": "Bienvenido a SECOP Smart 🚀",
+        "mensaje": "Bienvenido a SECOP II | Insight API 🚀",
         "api_secop": os.getenv("SECOP_API_URL"),
     }
 
