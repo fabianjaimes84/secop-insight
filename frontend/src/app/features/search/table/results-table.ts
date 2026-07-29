@@ -156,15 +156,19 @@ export class ResultsTable implements OnChanges {
   }
 
   // ==========================================
-  // Formatear fecha
+  // Formatear fecha (CORREGIDO - sin desfase de timezone)
   // ==========================================
-
   formatFecha(fecha: string | null | undefined): string[] {
     if (!fecha) {
       return ['', ''];
     }
 
-    const date = new Date(fecha);
+    // Extraer solo la parte de fecha (YYYY-MM-DD), ignorando hora y timezone
+    const fechaStr = fecha.includes('T') ? fecha.split('T')[0] : fecha;
+    const [year, month, day] = fechaStr.split('-').map(Number);
+    
+    // Crear fecha en zona horaria local para evitar desfase
+    const date = new Date(year, month - 1, day);
 
     return [
       new Intl.DateTimeFormat('es-CO', {
@@ -172,7 +176,6 @@ export class ResultsTable implements OnChanges {
         month: '2-digit',
         year: 'numeric',
       }).format(date),
-
       new Intl.DateTimeFormat('es-CO', {
         hour: '2-digit',
         minute: '2-digit',
@@ -180,7 +183,6 @@ export class ResultsTable implements OnChanges {
       }).format(date),
     ];
   }
-
   // ==========================================
   // Formatear moneda
   // ==========================================

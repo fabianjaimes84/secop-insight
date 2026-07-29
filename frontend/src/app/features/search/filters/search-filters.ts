@@ -14,6 +14,7 @@ import { SearchService } from '../services/search.service';
   styleUrl: './search-filters.scss',
 })
 export class SearchFilters implements OnInit {
+
   // ==========================================
   // Inyección de dependencias
   // ==========================================
@@ -95,9 +96,19 @@ export class SearchFilters implements OnInit {
 
   search(): void {
     const filtros = this.limpiarFiltros(this.searchForm.getRawValue());
-
+    
+    // Asegurar que las fechas se envíen en formato YYYY-MM-DD
+    if (filtros.fecha_publicacion_desde && filtros.fecha_publicacion_desde.includes('/')) {
+      const [day, month, year] = filtros.fecha_publicacion_desde.split('/');
+      filtros.fecha_publicacion_desde = `${year}-${month}-${day}`;
+    }
+    
+    if (filtros.fecha_publicacion_hasta && filtros.fecha_publicacion_hasta.includes('/')) {
+      const [day, month, year] = filtros.fecha_publicacion_hasta.split('/');
+      filtros.fecha_publicacion_hasta = `${year}-${month}-${day}`;
+    }
+    
     console.log('Filtros enviados al backend:', filtros);
-
     this.onSearch.emit(filtros);
   }
 
