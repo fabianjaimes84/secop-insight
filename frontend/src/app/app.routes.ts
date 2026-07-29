@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { MainLayout } from './layout/main-layout/main-layout';
-import { Search } from './features/process-search/pages/search/search';
+import { Search } from './features/search/pages/search';
 import { ROUTES } from './core/constants/routes';
 
 export const routes: Routes = [

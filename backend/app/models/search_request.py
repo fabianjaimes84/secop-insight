@@ -7,5 +7,3 @@ class SearchRequest(BaseModel):
     tipoProceso: str | None = None
     fechaPublicacionDesde: str | None = None
     fechaPublicacionHasta: str | None = None
-    fechaPresentacionDesde: str | None = None
-    fechaPresentacionHasta: str | None = None

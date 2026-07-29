@@ -1,5 +1,7 @@
 import httpx
+from datetime import datetime, timedelta
 
+from app.core.logger import logger
 from app.models.busqueda import BusquedaProceso
 from app.models.proceso import Proceso
 from app.repositories.secop_repository import SecopRepository
@@ -10,7 +12,14 @@ class SecopService:
     Servicio encargado de la lógica de negocio relacionada con SECOP.
     """
 
+    # ==========================================
+    # Configuración de caché
+    # ==========================================
+
     _catalogos_cache = None
+    _catalogos_cache_fecha = None
+
+    CATALOGOS_CACHE_HORAS = 24
 
     def __init__(self):
         self.repository = SecopRepository()
@@ -110,6 +119,7 @@ class SecopService:
         buscar: str | None = None,
         estado: str | None = None,
     ):
+        logger.info("Iniciando consulta rápida de procesos.")
 
         try:
             datos = self.repository.obtener_procesos(
@@ -118,12 +128,15 @@ class SecopService:
                 estado=estado,
             )
 
+            logger.info(f"Consulta completada. {len(datos)} procesos encontrados.")
+
             return [self._mapear_proceso(item) for item in datos]
 
-        except httpx.HTTPError as e:
+        except httpx.HTTPError:
+            logger.exception("Error al consultar la API de SECOP.")
             return {
                 "error": "No fue posible consultar la API de SECOP.",
-                "detalle": str(e),
+                "detalle": "Error de comunicación con SECOP.",
             }
 
     # ==========================================================
@@ -131,23 +144,67 @@ class SecopService:
     # ==========================================================
 
     def obtener_catalogo(self, campo: str):
+        logger.info(f"Consultando catálogo: {campo}")
 
         datos = self.repository.obtener_catalogo(campo)
+
+        logger.info(f"Catálogo '{campo}' obtenido correctamente.")
 
         return sorted({item[campo] for item in datos if item.get(campo)})
 
     def obtener_catalogos(self):
 
-        if self._catalogos_cache is not None:
-            print("📦 Catálogos obtenidos desde memoria")
-            return self._catalogos_cache
+        ahora = datetime.now()
 
-        print("🌐 Consultando catálogos en SECOP...")
+        # ======================================================
+        # Validar si la caché sigue vigente
+        # ======================================================
+
+        if (
+            self._catalogos_cache is not None
+            and self._catalogos_cache_fecha is not None
+        ):
+            horas = ahora - self._catalogos_cache_fecha
+
+            if horas < timedelta(hours=self.CATALOGOS_CACHE_HORAS):
+                restante = timedelta(hours=self.CATALOGOS_CACHE_HORAS) - horas
+
+                logger.info(
+                    f"Catálogos obtenidos desde memoria. "
+                    f"Expiran en {restante.seconds // 3600} horas."
+                )
+
+                return self._catalogos_cache
+
+            logger.info("La caché de catálogos expiró. Actualizando información...")
+
+        # ======================================================
+        # Consultar SECOP
+        # ======================================================
+
+        logger.info("Consultando catálogos en SECOP...")
+
+        estados = self.obtener_catalogo("estado_del_procedimiento")
+        logger.info(
+            f"Catálogo de --> Estado del proceso <-- ha cargado ({len(estados)} registros)."
+        )
+
+        tipos = self.obtener_catalogo("modalidad_de_contratacion")
+        logger.info(
+            f"Catálogo de --> Tipo de proceso <-- ha cargado ({len(tipos)} registros)."
+        )
 
         self._catalogos_cache = {
-            "estados": self.obtener_catalogo("estado_resumen"),
-            "tipos_proceso": self.obtener_catalogo("modalidad_de_contratacion"),
+            "estados": estados,
+            "tipos_proceso": tipos,
         }
+
+        self._catalogos_cache_fecha = ahora
+
+        logger.info(
+            f"Catálogos almacenados en memoria durante "
+            f"{self.CATALOGOS_CACHE_HORAS} horas."
+        )
 
         return self._catalogos_cache
 
@@ -157,6 +214,10 @@ class SecopService:
 
     def buscar_procesos(self, filtros: BusquedaProceso):
 
+        logger.info("Iniciando búsqueda de procesos.")
+
         datos = self.repository.buscar_procesos(filtros)
+
+        logger.info(f"Búsqueda finalizada. {len(datos)} procesos encontrados.")
 
         return [self._mapear_proceso(item) for item in datos]

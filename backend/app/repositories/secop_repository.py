@@ -1,6 +1,8 @@
+import json
 import httpx
 
 from app.core.config import settings
+from app.core.logger import logger
 from app.models.busqueda import BusquedaProceso
 
 
@@ -80,8 +82,6 @@ class SecopRepository:
         params = {
             "$limit": limit,
             "$select": ",".join(self.CAMPOS_PROCESO),
-            # Ordenar por la fecha de presentación
-            # de ofertas más próxima.
             "$order": "fecha_de_recepcion_de ASC",
         }
 
@@ -91,15 +91,23 @@ class SecopRepository:
         if estado:
             params["estado_resumen"] = estado
 
-        respuesta = httpx.get(
+        logger.info("Consultando procesos en SECOP II.")
+
+        response = httpx.get(
             settings.SECOP_API_URL,
             params=params,
             timeout=settings.TIMEOUT,
         )
 
-        respuesta.raise_for_status()
+        response.raise_for_status()
 
-        return respuesta.json()
+        datos = response.json()
+
+        logger.info(
+            f"Consulta completada correctamente. {len(datos)} procesos obtenidos."
+        )
+
+        return datos
 
     # ==========================================
     # Obtener valores únicos para los filtros
@@ -113,6 +121,8 @@ class SecopRepository:
             "$order": campo,
         }
 
+        logger.info(f"Consultando catálogo '{campo}'.")
+
         response = httpx.get(
             settings.SECOP_API_URL,
             params=params,
@@ -121,7 +131,13 @@ class SecopRepository:
 
         response.raise_for_status()
 
-        return response.json()
+        datos = response.json()
+
+        logger.info(
+            f"Catálogo '{campo}' obtenido correctamente. {len(datos)} registros."
+        )
+
+        return datos
 
     # ==========================================
     # Construir parámetros de búsqueda
@@ -132,45 +148,33 @@ class SecopRepository:
         params = {
             "$limit": filtros.limit,
             "$select": ",".join(self.CAMPOS_PROCESO),
-            # Orden predeterminado de la aplicación.
-            "$order": "fecha_de_recepcion_de ASC",
+            "$order": "fecha_de_publicacion_del DESC",
         }
 
         if filtros.buscar:
             params["$q"] = filtros.buscar
 
         if filtros.estado:
-            params["estado_resumen"] = filtros.estado
+            params["estado_del_procedimiento"] = filtros.estado
 
         if filtros.tipo_proceso:
             params["modalidad_de_contratacion"] = filtros.tipo_proceso
 
-        # ------------------------------------------
-        # Construcción dinámica del WHERE
-        # ------------------------------------------
-
         condiciones = []
+
+        # ==========================================
+        # Filtro por fecha de publicación (solo fecha)
+        # ==========================================
 
         if filtros.fecha_publicacion_desde:
             condiciones.append(
-                f"fecha_de_ultima_publicaci >= '{filtros.fecha_publicacion_desde}'"
+                f"fecha_de_publicacion_del >= '{filtros.fecha_publicacion_desde}T00:00:00'"
             )
 
         if filtros.fecha_publicacion_hasta:
             condiciones.append(
-                f"fecha_de_ultima_publicaci <= '{filtros.fecha_publicacion_hasta}'"
+                f"fecha_de_publicacion_del <= '{filtros.fecha_publicacion_hasta}T23:59:59'"
             )
-
-        if filtros.fecha_presentacion_desde:
-            condiciones.append(
-                f"fecha_de_recepcion_de >= '{filtros.fecha_presentacion_desde}'"
-            )
-
-        if filtros.fecha_presentacion_hasta:
-            condiciones.append(
-                f"fecha_de_recepcion_de <= '{filtros.fecha_presentacion_hasta}'"
-            )
-
         if condiciones:
             params["$where"] = " AND ".join(condiciones)
 
@@ -184,8 +188,7 @@ class SecopRepository:
 
         params = self._construir_parametros(filtros)
 
-        # Registro temporal para depuración
-        print(params)
+        logger.info("Iniciando búsqueda avanzada de procesos.")
 
         response = httpx.get(
             settings.SECOP_API_URL,
@@ -193,9 +196,32 @@ class SecopRepository:
             timeout=settings.TIMEOUT,
         )
 
-        print(response.status_code)
-        print(response.text[:500])
-
         response.raise_for_status()
 
-        return response.json()
+        datos = response.json()
+
+        logger.info(
+            f"Búsqueda finalizada correctamente. {len(datos)} procesos encontrados."
+        )
+
+        # ==========================================
+        # Eliminar registros 100 % idénticos
+        # ==========================================
+
+        datos_unicos = []
+        vistos = set()
+
+        for proceso in datos:
+            firma = json.dumps(proceso, sort_keys=True, ensure_ascii=False)
+
+            if firma not in vistos:
+                vistos.add(firma)
+                datos_unicos.append(proceso)
+
+        logger.info(
+            f"Se recibieron {len(datos)} registros, "
+            f"se eliminaron {len(datos) - len(datos_unicos)} duplicados exactos y "
+            f"se devolverán {len(datos_unicos)} registros."
+        )
+
+        return datos_unicos

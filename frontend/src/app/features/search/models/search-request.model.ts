@@ -9,9 +9,5 @@ export interface SearchRequest {
 
   fecha_publicacion_hasta?: string | null;
 
-  fecha_presentacion_desde?: string | null;
-
-  fecha_presentacion_hasta?: string | null;
-
   limit?: number;
 }

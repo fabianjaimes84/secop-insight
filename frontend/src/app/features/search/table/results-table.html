@@ -1,0 +1,205 @@
+<app-card>
+
+  <div>
+    <input type="text" [(ngModel)]="searchText" (input)="filterTable()" placeholder="Buscar dentro de los resultados..."
+      class="w-full rounded-sm border border-slate-300 px-4 py-2 text-sm focus:border-blue-900 focus:outline-none" />
+    <p class="pb-2">
+  </div>
+
+  <!-- ==========================
+       Estado sin resultados
+       ========================== -->
+  @if (processes.length === 0) {
+  <div
+    class="flex min-h-[320px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200">
+    <div class="mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-slate-100">
+      <i class="fa-solid fa-magnifying-glass text-lg text-slate-400"></i>
+    </div>
+
+    <h3 class="text-lg font-semibold text-slate-700">No hay resultados</h3>
+
+    <p class="mt-2 max-w-lg text-center text-xs leading-6 text-slate-500">
+      Utiliza los filtros de búsqueda y presiona
+      <strong>Buscar</strong>
+      para consultar procesos del SECOP II.
+    </p>
+  </div>
+  } @else {
+  <!-- ==========================
+       Tabla de resultados
+       ========================== -->
+
+  <div class="overflow-x-auto">
+    <table class="min-w-full text-xs">
+      <thead class="sticky top-0 bg-slate-50">
+        <tr>
+
+          <th class="min-w-[80px] cursor-pointer px-8 py-3 text-left font-semibold hover:bg-slate-100 transition"
+            (click)="sort('entidad')">
+            <div class="flex items-center gap-2">
+              <span>Entidad estatal</span>
+              <span class="text-sm text-slate-400">
+                {{ getSortIcon('entidad') }}
+              </span>
+            </div>
+          </th>
+
+          <th class="min-w-[50px] cursor-pointer px-3 py-3 text-center font-semibold hover:bg-slate-100 transition"
+            (click)="sort('referencia_del_proceso')">
+            <div class="flex items-center gap-2">
+              <span>Referencia</span>
+              <span class="text-sm text-slate-400">
+                {{ getSortIcon('entidad') }}
+              </span>
+            </div>
+          </th>
+
+          <th class="min-w-[300px] cursor-pointer px-3 py-3 text-center font-semibold hover:bg-slate-100 transition"
+            (click)="sort('nombre_del_procedimiento')">
+            <div class="flex items-center gap-2">
+              <span>Descripción</span>
+              <span class="text-sm text-slate-400">
+                {{ getSortIcon('entidad') }}
+              </span>
+            </div>
+          </th>
+
+          <th class="min-w-[120px] cursor-pointer px-3 py-3 text-center font-semibold hover:bg-slate-100 transition"
+            (click)="sort('fecha_de_publicacion_del')">
+            <div class="flex items-center gap-2">
+              <span>Publicación Oferta</span>
+              <span class="text-sm text-slate-400">
+                {{ getSortIcon('entidad') }}
+              </span>
+            </div>
+          </th>
+
+          <th class="min-w-[120px] cursor-pointer px-3 py-3 text-center font-semibold hover:bg-slate-100 transition"
+            (click)="sort('fecha_de_ultima_publicaci')">
+            <div class="flex items-center gap-2">
+              <span>Presentación Ofertas</span>
+              <span class="text-sm text-slate-400">
+                {{ getSortIcon('entidad') }}
+              </span>
+            </div>
+          </th>
+
+          <th class="min-w-[120px] cursor-pointer px-8 py-3 text-center font-semibold hover:bg-slate-100 transition"
+            (click)="sort('precio_base')">
+            <div class="flex items-center gap-2">
+              <span>Cuantía</span>
+              <span class="text-sm text-slate-400">
+                {{ getSortIcon('entidad') }}
+              </span>
+            </div>
+          </th>
+
+          <th class="min-w-[120px] cursor-pointer px-8 py-3 text-center font-semibold hover:bg-slate-100 transition"
+            (click)="sort('estado_resumen')">
+            <div class="flex items-center gap-2">
+              <span>Estado</span>
+              <span class="text-sm text-slate-400">
+                {{ getSortIcon('entidad') }}
+              </span>
+            </div>
+          </th>
+
+          <th class="min-w-[50px] px-3 py-3 text-center font-semibold">Ver</th>
+
+          <th class="min-w-[50px] px-3 py-3 text-center font-semibold">Guardar</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @for (process of filteredProcesses; track process.id_del_proceso) {
+        <tr class="border-t border-slate-200 hover:bg-slate-50">
+          <!-- Entidad -->
+          <td class="px-3 py-3 align-top">
+            {{ process.entidad }}
+          </td>
+
+          <!-- Referencia -->
+          <td class="px-3 py-3 align-top">
+            {{ process.referencia_del_proceso }}
+          </td>
+
+          <!-- Descripción -->
+          <td class="px-3 py-3 align-top leading-5">
+            {{ process.nombre_del_procedimiento }}
+          </td>
+
+          <!-- Fecha Publicacion -->
+          <td class="px-3 py-3 text-center align-top">
+            <div>
+              {{ formatFecha(process.fecha_de_ultima_publicaci)[0] }}
+            </div>
+          </td>
+
+          <!-- Fecha Presentación -->
+          <td class="px-3 py-3 text-center align-top">
+            <div>
+              {{ formatFecha(process.fecha_de_recepcion_de)[0] }}
+            </div>
+          </td>
+
+          <!-- Cuantía -->
+          <td class="px-3 py-3 text-center align-top">
+            <div>
+              {{ formatMoneda(process.precio_base) }}
+            </div>
+
+            <div class="mt-1 text-[11px] text-slate-500">
+              {{ formatSMMLV(process.precio_base) }}
+            </div>
+          </td>
+
+          <!-- Estado -->
+          <td class="px-3 py-3 text-center align-top">
+            <span class="inline-flex rounded px-2 py-1 text-xs" [class]="getEstadoClass(process.estado_resumen)">
+              {{ process.estado_resumen }}
+            </span>
+          </td>
+
+          <!-- ==========================
+               Abrir modal de detalle
+               ========================== -->
+
+          <td class="px-3 py-3 text-center align-top">
+            <button type="button" class="rounded bg-blue-600 px-2 py-1 text-white" (click)="openDetail(process)">
+              VER
+            </button>
+          </td>
+
+          <!-- Guardar -->
+          <td class="px-3 py-3 text-center align-top">
+            <button type="button" class="text-amber-500 transition hover:text-amber-600" title="Guardar proceso">
+              <i class="fa-regular fa-star"></i>
+            </button>
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  }
+
+  <!-- ==========================
+       Encabezado de resultados
+       ========================== -->
+  <div class="mb-1 pt-1 flex items-center justify-between">
+    <div>
+      <h2 class="font-semibold text-sm text-slate-800">Resultados</h2>
+    </div>
+
+    <span class="rounded-full bg-slate-100 px-2 py-1 text-sm text-slate-600">
+      {{ filteredProcesses.length }} resultados
+    </span>
+  </div>
+</app-card>
+
+<!-- ==========================================
+     Modal de detalle del proceso
+     ========================================== -->
+
+<app-process-detail [open]="detailOpen" [process]="selectedProcess" (close)="closeDetail()">
+</app-process-detail>
