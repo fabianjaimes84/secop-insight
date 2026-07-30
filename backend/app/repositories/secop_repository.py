@@ -11,6 +11,7 @@ from app.core.security import sanitize_string, validate_field, get_allowed_field
 class SecopRepository:
     """
     Repositorio encargado de consultar la API de SECOP II de forma asíncrona.
+    Incluye autenticación con Token Socrata si está configurado.
     """
 
     CAMPOS_PROCESO = [
@@ -62,6 +63,24 @@ class SecopRepository:
         "urlproceso",
     ]
 
+    def _get_headers(self) -> Dict[str, str]:
+        """
+        Genera los headers necesarios, incluyendo el Token de Socrata si existe.
+        Manejo seguro por si la configuración falla.
+        """
+        headers = {}
+        try:
+            token = getattr(settings, "SOCRATA_APP_TOKEN", None)
+            if token:
+                headers["X-App-Token"] = token
+        except Exception as e:
+            logger.warning(f"No se pudo leer el token de configuración: {e}")
+
+        if not headers:
+            logger.debug("Usando petición sin token (límite anónimo).")
+
+        return headers
+
     async def obtener_procesos_async(
         self,
         limit: int = 5,
@@ -75,19 +94,20 @@ class SecopRepository:
         }
 
         if buscar:
-            # Sanitizar búsqueda
             params["$q"] = sanitize_string(buscar)
 
         if estado:
             params["estado_resumen"] = sanitize_string(estado)
 
         logger.info("Consultando procesos en SECOP II (Async).")
+        headers = self._get_headers()
 
         async with httpx.AsyncClient() as client:
             response = await client.get(
                 settings.SECOP_API_URL,
                 params=params,
                 timeout=settings.TIMEOUT,
+                headers=headers,
             )
             response.raise_for_status()
             datos = response.json()
@@ -109,12 +129,14 @@ class SecopRepository:
         }
 
         logger.info(f"Consultando catálogo '{campo}'.")
+        headers = self._get_headers()
 
         async with httpx.AsyncClient() as client:
             response = await client.get(
                 settings.SECOP_API_URL,
                 params=params,
                 timeout=settings.TIMEOUT,
+                headers=headers,
             )
             response.raise_for_status()
             datos = response.json()
@@ -157,14 +179,15 @@ class SecopRepository:
 
     async def buscar_procesos_async(self, filtros: BusquedaProceso):
         params = await self._construir_parametros_async(filtros)
-
         logger.info("Iniciando búsqueda avanzada (Async).")
+        headers = self._get_headers()
 
         async with httpx.AsyncClient() as client:
             response = await client.get(
                 settings.SECOP_API_URL,
                 params=params,
                 timeout=settings.TIMEOUT,
+                headers=headers,
             )
             response.raise_for_status()
             datos = response.json()
