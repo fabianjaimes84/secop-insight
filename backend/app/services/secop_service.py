@@ -106,8 +106,21 @@ class SecopService:
             # ==========================
             # Enlace
             # ==========================
-            urlproceso=item.get("urlproceso", {}).get("url", ""),
+            urlproceso=self._extraer_url(item.get("urlproceso")),
         )
+
+    def _extraer_url(self, valor):
+        # ==========================================================
+        # Extrae la URL del campo urlproceso.
+        # Maneja tanto diccionarios como strings directos.
+        # ==========================================================
+        if not valor:
+            return ""
+        # Si es un diccionario (como en tu JSON), saca la clave 'url'
+        if isinstance(valor, dict):
+            return valor.get("url", "")
+        # Si ya es un string directo (por si cambia la API en el futuro), lo devuelve tal cual
+        return str(valor)
 
     # ==========================================================
     # Consulta rápida
