@@ -1,23 +1,17 @@
-import json
 import httpx
+import json
+from typing import List, Dict, Any, Optional
 
 from app.core.config import settings
 from app.core.logger import logger
 from app.models.busqueda import BusquedaProceso
+from app.core.security import sanitize_string, validate_field, get_allowed_fields
 
 
 class SecopRepository:
     """
-    Repositorio encargado de consultar la API de SECOP II.
-
-    Centraliza la construcción de los parámetros enviados
-    a la API, permitiendo mantener la lógica de búsqueda
-    en un único lugar.
+    Repositorio encargado de consultar la API de SECOP II de forma asíncrona.
     """
-
-    # ==========================================
-    # Campos utilizados por la aplicación
-    # ==========================================
 
     CAMPOS_PROCESO = [
         "entidad",
@@ -68,17 +62,12 @@ class SecopRepository:
         "urlproceso",
     ]
 
-    # ==========================================
-    # Consulta básica de procesos
-    # ==========================================
-
-    def obtener_procesos(
+    async def obtener_procesos_async(
         self,
         limit: int = 5,
-        buscar: str | None = None,
-        estado: str | None = None,
+        buscar: Optional[str] = None,
+        estado: Optional[str] = None,
     ):
-
         params = {
             "$limit": limit,
             "$select": ",".join(self.CAMPOS_PROCESO),
@@ -86,34 +75,32 @@ class SecopRepository:
         }
 
         if buscar:
-            params["$q"] = buscar
+            # Sanitizar búsqueda
+            params["$q"] = sanitize_string(buscar)
 
         if estado:
-            params["estado_resumen"] = estado
+            params["estado_resumen"] = sanitize_string(estado)
 
-        logger.info("Consultando procesos en SECOP II.")
+        logger.info("Consultando procesos en SECOP II (Async).")
 
-        response = httpx.get(
-            settings.SECOP_API_URL,
-            params=params,
-            timeout=settings.TIMEOUT,
-        )
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                settings.SECOP_API_URL,
+                params=params,
+                timeout=settings.TIMEOUT,
+            )
+            response.raise_for_status()
+            datos = response.json()
 
-        response.raise_for_status()
-
-        datos = response.json()
-
-        logger.info(
-            f"Consulta completada correctamente. {len(datos)} procesos obtenidos."
-        )
-
+        logger.info(f"Consulta completada. {len(datos)} procesos obtenidos.")
         return datos
 
-    # ==========================================
-    # Obtener valores únicos para los filtros
-    # ==========================================
-
-    def obtener_catalogo(self, campo: str):
+    async def obtener_catalogo_async(self, campo: str):
+        # Validar campo contra lista blanca
+        allowed_fields = get_allowed_fields(settings.SECOP_API_URL)
+        if not validate_field(campo, settings.SECOP_API_URL):
+            logger.warning(f"Intento de acceso a campo no permitido: {campo}")
+            return []
 
         params = {
             "$select": campo,
@@ -123,28 +110,19 @@ class SecopRepository:
 
         logger.info(f"Consultando catálogo '{campo}'.")
 
-        response = httpx.get(
-            settings.SECOP_API_URL,
-            params=params,
-            timeout=settings.TIMEOUT,
-        )
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                settings.SECOP_API_URL,
+                params=params,
+                timeout=settings.TIMEOUT,
+            )
+            response.raise_for_status()
+            datos = response.json()
 
-        response.raise_for_status()
-
-        datos = response.json()
-
-        logger.info(
-            f"Catálogo '{campo}' obtenido correctamente. {len(datos)} registros."
-        )
-
+        logger.info(f"Catálogo '{campo}' obtenido. {len(datos)} registros.")
         return datos
 
-    # ==========================================
-    # Construir parámetros de búsqueda
-    # ==========================================
-
-    def _construir_parametros(self, filtros: BusquedaProceso):
-
+    async def _construir_parametros_async(self, filtros: BusquedaProceso):
         params = {
             "$limit": filtros.limit,
             "$select": ",".join(self.CAMPOS_PROCESO),
@@ -152,19 +130,15 @@ class SecopRepository:
         }
 
         if filtros.buscar:
-            params["$q"] = filtros.buscar
+            params["$q"] = sanitize_string(filtros.buscar)
 
         if filtros.estado:
-            params["estado_del_procedimiento"] = filtros.estado
+            params["estado_del_procedimiento"] = sanitize_string(filtros.estado)
 
         if filtros.tipo_proceso:
-            params["modalidad_de_contratacion"] = filtros.tipo_proceso
+            params["modalidad_de_contratacion"] = sanitize_string(filtros.tipo_proceso)
 
         condiciones = []
-
-        # ==========================================
-        # Filtro por fecha de publicación (solo fecha)
-        # ==========================================
 
         if filtros.fecha_publicacion_desde:
             condiciones.append(
@@ -175,53 +149,34 @@ class SecopRepository:
             condiciones.append(
                 f"fecha_de_publicacion_del <= '{filtros.fecha_publicacion_hasta}T23:59:59'"
             )
+
         if condiciones:
             params["$where"] = " AND ".join(condiciones)
 
         return params
 
-    # ==========================================
-    # Consulta principal utilizada por la aplicación
-    # ==========================================
+    async def buscar_procesos_async(self, filtros: BusquedaProceso):
+        params = await self._construir_parametros_async(filtros)
 
-    def buscar_procesos(self, filtros: BusquedaProceso):
+        logger.info("Iniciando búsqueda avanzada (Async).")
 
-        params = self._construir_parametros(filtros)
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                settings.SECOP_API_URL,
+                params=params,
+                timeout=settings.TIMEOUT,
+            )
+            response.raise_for_status()
+            datos = response.json()
 
-        logger.info("Iniciando búsqueda avanzada de procesos.")
-
-        response = httpx.get(
-            settings.SECOP_API_URL,
-            params=params,
-            timeout=settings.TIMEOUT,
-        )
-
-        response.raise_for_status()
-
-        datos = response.json()
-
-        logger.info(
-            f"Búsqueda finalizada correctamente. {len(datos)} procesos encontrados."
-        )
-
-        # ==========================================
-        # Eliminar registros 100 % idénticos
-        # ==========================================
-
+        # Eliminar duplicados exactos
         datos_unicos = []
         vistos = set()
-
         for proceso in datos:
             firma = json.dumps(proceso, sort_keys=True, ensure_ascii=False)
-
             if firma not in vistos:
                 vistos.add(firma)
                 datos_unicos.append(proceso)
 
-        logger.info(
-            f"Se recibieron {len(datos)} registros, "
-            f"se eliminaron {len(datos) - len(datos_unicos)} duplicados exactos y "
-            f"se devolverán {len(datos_unicos)} registros."
-        )
-
+        logger.info(f"Búsqueda finalizada. {len(datos_unicos)} procesos únicos.")
         return datos_unicos

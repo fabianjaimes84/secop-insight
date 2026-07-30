@@ -1,0 +1,33 @@
+{
+  "estados": [
+    "Abierto",
+    "Aprobado",
+    "Borrador",
+    "Cancelado",
+    "En aprobación",
+    "Evaluación",
+    "Publicado",
+    "Seleccionado",
+    "Suspendido"
+  ],
+  "tipos_proceso": [
+    "Concurso de méritos abierto",
+    "Concurso de méritos con precalificación",
+    "Contratación Directa (con ofertas)",
+    "Contratación directa",
+    "Contratación régimen especial",
+    "Contratación régimen especial (con ofertas)",
+    "Enajenación de bienes con sobre cerrado",
+    "Enajenación de bienes con subasta",
+    "Licitación Pública Acuerdo Marco de Precios",
+    "Licitación pública",
+    "Licitación pública Obra Publica",
+    "Mínima cuantía",
+    "No Definido",
+    "Seleccion Abreviada Menor Cuantia Sin Manifestacion Interes",
+    "Selección Abreviada de Menor Cuantía",
+    "Selección abreviada subasta inversa",
+    "Solicitud de información a los Proveedores",
+    "Subasta de prueba"
+  ]
+}
