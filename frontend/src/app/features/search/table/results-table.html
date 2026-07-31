@@ -104,6 +104,16 @@
             </div>
           </th>
 
+          <th class="min-w-[120px] cursor-pointer px-8 py-3 text-center font-semibold hover:bg-slate-100 transition"
+            (click)="sort('estado_resumen')">
+            <div class="flex items-center gap-2">
+              <span>Tipo de Contrado</span>
+              <span class="text-sm text-slate-400">
+                {{ getSortIcon('entidad') }}
+              </span>
+            </div>
+          </th>
+
           <th class="min-w-[50px] px-3 py-3 text-center font-semibold">Ver</th>
 
           <th class="min-w-[50px] px-3 py-3 text-center font-semibold">Guardar</th>
@@ -125,7 +135,7 @@
 
           <!-- Descripción -->
           <td class="px-3 py-3 align-top leading-5">
-            {{ process.nombre_del_procedimiento }}
+            {{ process.descripci_n_del_procedimiento }}
           </td>
 
           <!-- Fecha Publicacion -->
@@ -158,6 +168,11 @@
             <span class="inline-flex rounded px-2 py-1 text-xs" [class]="getEstadoClass(process.estado_resumen)">
               {{ process.estado_resumen }}
             </span>
+          </td>
+
+          <!-- process.tipo_de_contrato -->
+          <td class="px-3 py-3 align-top">
+            {{ process.tipo_de_contrato  }}
           </td>
 
           <!-- ==========================
