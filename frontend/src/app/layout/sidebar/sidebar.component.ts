@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 
@@ -23,6 +23,18 @@ export class SidebarComponent {
   isDesktop: boolean = typeof window !== 'undefined' && window.innerWidth >= 768;
 
   constructor(private router: Router) {}
+
+  @HostListener('window:resize')
+  onResize(): void {
+    this.isDesktop = typeof window !== 'undefined' && window.innerWidth >= 768;
+  }
+
+  toggleSidebar(): void {
+    if (!this.isDesktop) {
+      this.isOpen = !this.isOpen;
+      this.toggleMobileSidebar.emit();
+    }
+  }
 
   // Lista de menú actualizada con Centro de Ayuda
   readonly menuItems: MenuItem[] = [
