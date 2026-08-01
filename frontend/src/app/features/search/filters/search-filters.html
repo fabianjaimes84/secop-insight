@@ -11,7 +11,7 @@
 
   <!-- Formulario -->
   <!-- (keydown.enter) fuerza la búsqueda y previene comportamiento default en selects -->
-  <form [formGroup]="searchForm" (ngSubmit)="search()" (keydown.enter)="search(); $event.preventDefault()">
+  <div [formGroup]="searchForm" (keydown.enter)="search(); $event.preventDefault()" class="space-y-6">
     <div class="grid grid-cols-1 gap-5 md:grid-cols-4">
 
       <!-- Buscar -->
@@ -65,22 +65,32 @@
           class="w-full rounded-sm border border-slate-300 px-4 py-2.5 text-sm text-slate-700 transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100 focus:outline-none" />
       </div>
     </div>
-  </form>
 
-  <hr class="my-6 border-slate-200" />
+    <hr class="my-6 border-slate-200" />
 
-  <!-- Botones -->
-  <div class="flex justify-end gap-3">
-    <!-- Botón Limpiar: type="button" -->
-    <button type="button" (click)="clear()"
-      class="rounded-sm border border-slate-300 bg-white px-8 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100">
-      Limpiar
-    </button>
+    <!-- Botones -->
+    <div class="flex justify-end gap-3">
+      <!-- Botón Limpiar: type="button" -->
+      <button type="button" (click)="clear()"
+        class="rounded-sm border border-slate-300 bg-white px-8 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100">
+        Limpiar
+      </button>
 
-    <!-- Botón Buscar: type="submit" -->
-    <button type="submit"
-      class="rounded-sm bg-blue-600 px-8 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700">
-      Buscar
-    </button>
+      <!-- Botón Buscar: dispara la búsqueda al hacer clic -->
+      <button type="button" (click)="search()" [disabled]="isLoading" [attr.aria-busy]="isLoading"
+        class="rounded-sm bg-blue-600 px-8 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70">
+        @if (isLoading) {
+          <span class="inline-flex items-center gap-2">
+            <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4Zm2 5.291A8 8 0 0 0 20 12h4a12 12 0 0 1-10 11.708v-4.417Z"></path>
+            </svg>
+            Buscando...
+          </span>
+        } @else {
+          Buscar
+        }
+      </button>
+    </div>
   </div>
 </app-card>

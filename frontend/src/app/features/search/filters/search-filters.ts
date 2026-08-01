@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, OnInit, inject, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnInit, inject, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 
 import { Card } from '../../../shared/ui/card/card';
@@ -31,6 +31,9 @@ export class SearchFilters implements OnInit, AfterViewInit {
   // ==========================================
   // Eventos
   // ==========================================
+
+  @Input()
+  isLoading = false;
 
   @Output()
   readonly onSearch = new EventEmitter<SearchRequest>();
