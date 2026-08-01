@@ -1,0 +1,5 @@
+/* Estilos adicionales si son necesarios, la mayoría están en el HTML con Tailwind */
+:host {
+  display: block;
+  height: 100%;
+}
