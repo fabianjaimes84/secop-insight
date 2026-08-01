@@ -121,7 +121,7 @@
       </thead>
 
       <tbody>
-        @for (process of filteredProcesses; track process.id_del_proceso) {
+        @for (process of paginatedProcesses; track process.id_del_proceso) {
         <tr class="border-t border-slate-200 hover:bg-slate-50">
           <!-- Entidad -->
           <td class="px-3 py-3 align-top">
@@ -205,11 +205,47 @@
     <div>
       <h2 class="font-semibold text-sm text-slate-800">Resultados</h2>
     </div>
-
+ 
     <span class="rounded-full bg-slate-100 px-2 py-1 text-sm text-slate-600">
       {{ filteredProcesses.length }} resultados
     </span>
   </div>
+
+  @if (filteredProcesses.length > itemsPerPage) {
+  <div class="mt-4 flex flex-col gap-3 border-t border-slate-200 pt-4 sm:flex-row sm:items-center sm:justify-between">
+    <div class="text-sm text-slate-600">
+      Mostrando {{ (currentPage - 1) * itemsPerPage + 1 }}-{{ (currentPage * itemsPerPage) > filteredProcesses.length ? filteredProcesses.length : (currentPage * itemsPerPage) }} de {{ filteredProcesses.length }} resultados
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2">
+      <button type="button" class="rounded border border-slate-300 px-3 py-1.5 text-sm text-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
+        (click)="prevPage()" [disabled]="currentPage === 1">
+        Anterior
+      </button>
+
+      @for (page of visiblePages; track page) {
+        @if (page === '...') {
+          <span class="px-2 text-sm text-slate-400">...</span>
+        } @else {
+          <button type="button" class="min-w-8 rounded px-2 py-1.5 text-sm"
+            [class.bg-blue-600]="page === currentPage"
+            [class.text-white]="page === currentPage"
+            [class.border]="page !== currentPage"
+            [class.border-slate-300]="page !== currentPage"
+            [class.text-slate-600]="page !== currentPage"
+            (click)="goToPage(page)">
+            {{ page }}
+          </button>
+        }
+      }
+
+      <button type="button" class="rounded border border-slate-300 px-3 py-1.5 text-sm text-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
+        (click)="nextPage()" [disabled]="currentPage === totalPages">
+        Siguiente
+      </button>
+    </div>
+  </div>
+  }
 </app-card>
 
 <!-- ==========================================
