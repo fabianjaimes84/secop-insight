@@ -10,14 +10,12 @@
   <hr class="my-2 border-slate-200" />
 
   <!-- Formulario -->
-  <!-- (keydown.enter) fuerza la búsqueda y previene comportamiento default en selects -->
   <div [formGroup]="searchForm" (keydown.enter)="search(); $event.preventDefault()" class="space-y-6">
     <div class="grid grid-cols-1 gap-5 md:grid-cols-4">
 
       <!-- Buscar -->
       <div class="space-y-2 md:col-span-2">
-        <label class="bg-white text-indigo-600 hover:bg-indigo-600 hover:text-white">Buscar</label>
-        <!-- Se agregó #buscarInput para referencia desde TS -->
+        <label class="text-sm font-medium text-slate-700">Buscar</label>
         <input 
           #buscarInput
           type="text" 
@@ -51,6 +49,18 @@
         </select>
       </div>
 
+      <!-- NUEVO: Tipo de Contrato -->
+      <div class="space-y-2">
+        <label class="text-sm font-medium text-slate-700">Tipo de contrato</label>
+        <select formControlName="tipo_contrato"
+          class="w-full rounded-sm border border-slate-300 px-4 py-2.5 text-sm text-slate-700 transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100 focus:outline-none">
+          <option value="">Seleccione un tipo de contrato</option>
+          @for (tipo of tiposContrato; track tipo) {
+          <option [value]="tipo">{{ tipo }}</option>
+          }
+        </select>
+      </div>
+
       <!-- Fecha publicación desde -->
       <div class="space-y-2">
         <label class="text-sm font-medium text-slate-700">Fecha publicación desde</label>
@@ -70,13 +80,11 @@
 
     <!-- Botones -->
     <div class="flex justify-end gap-3">
-      <!-- Botón Limpiar: type="button" -->
       <button type="button" (click)="clear()"
         class="rounded-sm border border-slate-300 bg-white px-8 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100">
         Limpiar
       </button>
 
-      <!-- Botón Buscar: dispara la búsqueda al hacer clic -->
       <button type="button" (click)="search()" [disabled]="isLoading" [attr.aria-busy]="isLoading"
         class="rounded-sm bg-blue-600 px-8 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70">
         @if (isLoading) {

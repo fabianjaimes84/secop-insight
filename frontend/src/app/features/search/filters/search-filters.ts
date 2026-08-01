@@ -48,14 +48,15 @@ export class SearchFilters implements OnInit, AfterViewInit {
   searchForm: FormGroup;
 
   estados: string[] = [];
-
   tiposProceso: string[] = [];
+  tiposContrato: string[] = []; // NUEVO: Lista de tipos de contrato
 
   constructor() {
     this.searchForm = this.fb.group({
       buscar: [''],
       estado: [''],
       tipo_proceso: [''],
+      tipo_contrato: [''], // NUEVO: Campo en el formulario
       fecha_publicacion_desde: [''],
       fecha_publicacion_hasta: [''],
     });
@@ -71,8 +72,10 @@ export class SearchFilters implements OnInit, AfterViewInit {
   ngOnInit(): void {
     this.searchService.getCatalogos().subscribe({
       next: (catalogos) => {
-        this.estados = catalogos.estados;
-        this.tiposProceso = catalogos.tipos_proceso;
+        this.estados = catalogos.estados || [];
+        this.tiposProceso = catalogos.tipos_proceso || [];
+        // NUEVO: Cargar tipos de contrato si vienen en la respuesta
+        this.tiposContrato = catalogos.tipos_contrato || []; 
       },
       error: (error: unknown) => {
         console.error('Error cargando catálogos:', error);
@@ -118,6 +121,7 @@ export class SearchFilters implements OnInit, AfterViewInit {
       buscar: filtros.buscar?.trim() || null,
       estado: filtros.estado || null,
       tipo_proceso: filtros.tipo_proceso || null,
+      tipo_contrato: filtros.tipo_contrato || null, // NUEVO: Incluir en el envío
       fecha_publicacion_desde: filtros.fecha_publicacion_desde || null,
       fecha_publicacion_hasta: filtros.fecha_publicacion_hasta || null,
       limit: 50,
@@ -158,6 +162,7 @@ export class SearchFilters implements OnInit, AfterViewInit {
       buscar: '',
       estado: '',
       tipo_proceso: '',
+      tipo_contrato: '', // NUEVO: Resetear campo
     });
 
     // Restablecer fechas por defecto

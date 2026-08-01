@@ -29,5 +29,33 @@
     "Selección abreviada subasta inversa",
     "Solicitud de información a los Proveedores",
     "Subasta de prueba"
+  ],
+  "tipos_contrato": [
+    "Acuerdo Marco de Precios",
+    "Acuerdo de cooperación",
+    "Arrendamiento de inmuebles",
+    "Arrendamiento de muebles",
+    "Asociación Público Privada",
+    "Comisión",
+    "Comodato",
+    "Compraventa",
+    "Concesión",
+    "Consultoría",
+    "Decreto 092 de 2017",
+    "Empréstito",
+    "Interventoría",
+    "Negocio fiduciario",
+    "No",
+    "No Especificado",
+    "No definido",
+    "Obra",
+    "Operaciones de Crédito Público",
+    "Otro",
+    "Prestación de servicios",
+    "Seguros",
+    "Servicios financieros",
+    "Suministros",
+    "Venta inmuebles",
+    "Venta muebles"
   ]
 }

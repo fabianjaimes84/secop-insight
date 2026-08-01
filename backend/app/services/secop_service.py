@@ -193,11 +193,16 @@ class SecopService:
         ruta_archivo = os.path.join(base_dir, "data", "catalogos.json")
 
         # 1. Cargar datos locales inmediatamente
-        datos_locales = {"estados": [], "tipos_proceso": []}
+        datos_locales = {"estados": [], "tipos_proceso": [], "tipos_contrato": []}
         try:
             if os.path.exists(ruta_archivo):
                 with open(ruta_archivo, "r", encoding="utf-8") as f:
                     datos_locales = json.load(f)
+
+                # Asegurar que la nueva clave exista si el archivo es antiguo
+                if "tipos_contrato" not in datos_locales:
+                    datos_locales["tipos_contrato"] = []
+
                 logger.info(f"Catálogos cargados desde archivo local ({ruta_archivo}).")
             else:
                 logger.warning(
@@ -219,11 +224,16 @@ class SecopService:
         try:
             logger.info("Iniciando actualización de catálogos en segundo plano...")
 
-            # Consultar API real (usando el método que ya tiene caché interno si se desea)
+            # Consultar API real para los tres catálogos
             estados_nuevos = await self.obtener_catalogo("estado_del_procedimiento")
             tipos_nuevos = await self.obtener_catalogo("modalidad_de_contratacion")
+            contratos_nuevos = await self.obtener_catalogo("tipo_de_contrato")
 
-            datos_nuevos = {"estados": estados_nuevos, "tipos_proceso": tipos_nuevos}
+            datos_nuevos = {
+                "estados": estados_nuevos,
+                "tipos_proceso": tipos_nuevos,
+                "tipos_contrato": contratos_nuevos,
+            }
 
             # Comparar con lo que hay en el archivo para evitar escrituras innecesarias
             datos_viejos = {}
@@ -239,6 +249,9 @@ class SecopService:
                     json.dump(datos_nuevos, f, indent=2, ensure_ascii=False)
 
                 logger.info("✅ Catálogos actualizados en disco exitosamente.")
+                logger.info(f"   - Estados: {len(estados_nuevos)}")
+                logger.info(f"   - Tipos de proceso: {len(tipos_nuevos)}")
+                logger.info(f"   - Tipos de contrato: {len(contratos_nuevos)}")
             else:
                 logger.info(
                     "ℹ️ Catálogos sin cambios. No se requiere escritura en disco."
