@@ -8,34 +8,27 @@ import { SidebarComponent } from '../sidebar/sidebar.component';
   standalone: true,
   imports: [CommonModule, RouterOutlet, SidebarComponent], // 2. Agregar RouterOutlet a los imports
   template: `
-    <div class="flex h-screen bg-gray-50 overflow-hidden font-sans text-gray-900">
-      
-      <!-- Sidebar: Ahora maneja la navegación interna -->
+    <div class="flex min-h-screen overflow-hidden bg-slate-100 font-sans text-slate-900">
       <app-sidebar></app-sidebar>
 
-      <!-- Área Principal -->
-      <main class="flex-1 flex flex-col h-full overflow-hidden relative">
-        
-        <!-- Header Superior (Opcional, si quieres mantenerlo aquí) -->
-        <header class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shadow-sm z-10 shrink-0">
+      <main class="flex flex-1 flex-col overflow-hidden">
+        <header class="z-10 flex shrink-0 flex-col gap-3 border-b border-slate-200 bg-white px-4 py-4 shadow-sm sm:flex-row sm:items-center sm:justify-between md:px-6">
           <div>
-            <h2 class="text-xl font-bold text-gray-800 tracking-tight">SECOP II | Insight</h2>
-            <p class="text-xs text-gray-500 mt-1">Plataforma de Inteligencia Contractual</p>
+            <h2 class="text-lg font-semibold tracking-tight text-slate-800 sm:text-xl">SECOP II | Insight</h2>
+            <p class="mt-1 text-xs text-slate-500">Plataforma de Inteligencia Contractual</p>
           </div>
-          <div class="flex items-center gap-2 px-3 py-1 bg-green-50 text-green-700 rounded-full text-xs font-medium border border-green-200">
-            <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+          <div class="inline-flex w-fit items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
+            <span class="h-2 w-2 animate-pulse rounded-full bg-emerald-500"></span>
             Sistema Activo
           </div>
         </header>
 
-        <!-- 3. AQUÍ SE CARGAN LAS PÁGINAS (Dashboard, Buscar, IA, etc.) -->
-        <div class="flex-1 overflow-auto p-4 md:p-6 scroll-smooth bg-gray-50">
+        <div class="flex-1 overflow-auto bg-slate-50 p-3 scroll-smooth sm:p-4 md:p-6">
           <router-outlet></router-outlet>
         </div>
-        
       </main>
     </div>
   `,
-  styles: [`:host { display: block; height: 100%; }`]
+  styles: [`:host { display: block; min-height: 100vh; }`]
 })
 export class MainLayout {}

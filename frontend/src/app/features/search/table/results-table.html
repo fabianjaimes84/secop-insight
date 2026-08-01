@@ -30,7 +30,7 @@
        ========================== -->
 
   <div class="overflow-x-auto">
-    <table class="min-w-full text-xs">
+    <table class="min-w-[920px] text-xs sm:text-sm">
       <thead class="sticky top-0 bg-slate-50">
         <tr>
 
@@ -201,18 +201,18 @@
   <!-- ==========================
        Encabezado de resultados
        ========================== -->
-  <div class="mb-1 pt-1 flex items-center justify-between">
+  <div class="mb-1 flex flex-col gap-2 pt-1 sm:flex-row sm:items-center sm:justify-between">
     <div>
-      <h2 class="font-semibold text-sm text-slate-800">Resultados</h2>
+      <h2 class="text-sm font-semibold text-slate-800">Resultados</h2>
     </div>
- 
-    <span class="rounded-full bg-slate-100 px-2 py-1 text-sm text-slate-600">
+  
+    <span class="w-fit rounded-full bg-slate-100 px-2 py-1 text-sm text-slate-600">
       {{ filteredProcesses.length }} resultados
     </span>
   </div>
-
+  
   @if (filteredProcesses.length > itemsPerPage) {
-  <div class="mt-4 flex flex-col gap-3 border-t border-slate-200 pt-4 sm:flex-row sm:items-center sm:justify-between">
+  <div class="mt-4 flex flex-col gap-3 border-t border-slate-200 pt-4 md:flex-row md:items-center md:justify-between">
     <div class="text-sm text-slate-600">
       Mostrando {{ (currentPage - 1) * itemsPerPage + 1 }}-{{ (currentPage * itemsPerPage) > filteredProcesses.length ? filteredProcesses.length : (currentPage * itemsPerPage) }} de {{ filteredProcesses.length }} resultados
     </div>
