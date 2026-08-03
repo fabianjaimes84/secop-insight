@@ -4,7 +4,10 @@ from dotenv import load_dotenv
 import os
 
 from app.api.routes.secop_routes import router as secop_router
+from app.api.routes.html_descarga_routes import router as html_descarga_router
 from app.core.logger import logger
+from app.db.base import engine, Base
+from app.db import models as db_models  # noqa: F401 (registra las tablas en Base)
 
 # Cargar variables del archivo .env
 load_dotenv()
@@ -28,6 +31,7 @@ app.add_middleware(
 
 @app.on_event("startup")
 def startup_event():
+    Base.metadata.create_all(bind=engine)
     logger.info("SECOP Insight API iniciada correctamente.")
 
 
@@ -42,3 +46,4 @@ def inicio():
 
 
 app.include_router(secop_router)
+app.include_router(html_descarga_router)

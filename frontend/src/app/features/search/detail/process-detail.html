@@ -38,6 +38,16 @@
 
       <!-- Contenido de las pestañas -->
       <main class="flex-1 overflow-y-auto p-6 bg-slate-50/50">
+
+        @if (cargandoHtmlDescarga) {
+          <div class="mb-4 flex items-center justify-center gap-3 rounded-lg border border-slate-200 bg-white px-6 py-3 text-sm text-slate-500 shadow-sm animate-fade-in">
+            <svg class="animate-spin h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span class="font-medium">Cargando información adicional...</span>
+          </div>
+        }
         
         <!-- TAB 1: INFORMACIÓN -->
         @if (activeTab === 'informacion') {
@@ -48,8 +58,8 @@
                 <i class="fa-solid fa-building mr-2 text-blue-600"></i> Información de la Entidad
               </h3>
               <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                <div><span class="text-xs font-medium text-slate-500">Entidad</span><p class="text-sm font-semibold text-slate-800">{{ process.entidad }}</p></div>
-                <div><span class="text-xs font-medium text-slate-500">NIT</span><p class="text-sm font-semibold text-slate-800">{{ process.nit_entidad }}</p></div>
+                <div><span class="text-xs font-medium text-slate-500">Entidad</span><p class="text-sm font-semibold text-slate-800">{{ datosHtmlDescarga?.entidad || process.entidad }}</p></div>
+                <div><span class="text-xs font-medium text-slate-500">NIT</span><p class="text-sm font-semibold text-slate-800">{{ process.nit_entidad || 'No definido' }}</p></div>
                 <div><span class="text-xs font-medium text-slate-500">Ubicación</span><p class="text-sm font-semibold text-slate-800">{{ process.departamento_entidad }} - {{ process.ciudad_entidad }}</p></div>
               </div>
             </div>
@@ -62,12 +72,48 @@
               <div class="space-y-4">
                 <div>
                   <span class="text-xs font-medium text-slate-500">Objeto del contrato</span>
-                  <p class="mt-1 text-sm leading-relaxed text-slate-800">{{ process.descripci_n_del_procedimiento || 'No especificado' }}</p>
+                  <p class="mt-1 text-sm leading-relaxed text-slate-800">{{ datosHtmlDescarga?.descripcion || process.descripci_n_del_procedimiento || 'No especificado' }}</p>
                 </div>
                 <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  <div><span class="text-xs font-medium text-slate-500">Modalidad</span><p class="text-sm font-semibold text-slate-800">{{ process.modalidad_de_contratacion }}</p></div>
-                  <div><span class="text-xs font-medium text-slate-500">Tipo de contrato</span><p class="text-sm font-semibold text-slate-800">{{ process.tipo_de_contrato }}</p></div>
-                  <div><span class="text-xs font-medium text-slate-500">Estado</span><p class="text-sm font-semibold text-slate-800"><span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">{{ process.estado_resumen }}</span></p></div>
+                  <div><span class="text-xs font-medium text-slate-500">Modalidad</span><p class="text-sm font-semibold text-slate-800">{{ datosHtmlDescarga?.modalidad || process.modalidad_de_contratacion }}</p></div>
+                  <div><span class="text-xs font-medium text-slate-500">Tipo de contrato</span><p class="text-sm font-semibold text-slate-800">{{ datosHtmlDescarga?.tipo_contrato || process.tipo_de_contrato }}</p></div>
+                  <div><span class="text-xs font-medium text-slate-500">Estado</span><p class="text-sm font-semibold text-slate-800"><span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">{{ datosHtmlDescarga?.estado || process.estado_resumen }}</span></p></div>
+
+                  <div><span class="text-xs font-medium text-slate-500">Fase</span><p class="text-sm font-semibold text-slate-800">{{ datosHtmlDescarga?.fase || process.fase || 'No definido' }}</p></div>
+                  @if (datosHtmlDescarga?.fase_previa) {
+                    <div><span class="text-xs font-medium text-slate-500">Fase previa</span><p class="text-sm font-semibold text-slate-800">{{ datosHtmlDescarga.fase_previa }}</p></div>
+                  }
+                  @if (datosHtmlDescarga?.proceso_relacionado) {
+                    <div><span class="text-xs font-medium text-slate-500">Proceso relacionado</span><p class="text-sm font-semibold text-slate-800">{{ datosHtmlDescarga.proceso_relacionado }}</p></div>
+                  }
+
+                  @if (datosHtmlDescarga?.sector) {
+                    <div><span class="text-xs font-medium text-slate-500">Sector</span><p class="text-sm font-semibold text-slate-800">{{ datosHtmlDescarga.sector }}</p></div>
+                  }
+                  @if (datosHtmlDescarga) {
+                    <div><span class="text-xs font-medium text-slate-500">Limitado a Mipyme</span><p class="text-sm font-semibold text-slate-800">{{ datosHtmlDescarga.limitado_mipyme ? 'Sí' : 'No' }}</p></div>
+                    <div><span class="text-xs font-medium text-slate-500">Tiene lotes</span><p class="text-sm font-semibold text-slate-800">{{ datosHtmlDescarga.tiene_lotes ? 'Sí' : 'No' }}</p></div>
+                  }
+
+                  <div>
+                    <span class="text-xs font-medium text-slate-500">Duración del contrato</span>
+                    <p class="text-sm font-semibold text-slate-800">
+                      {{ datosHtmlDescarga?.duracion_contrato || (process.duracion ? process.duracion + ' ' + process.unidad_de_duracion : 'No definido') }}
+                    </p>
+                  </div>
+                  @if (datosHtmlDescarga?.fecha_terminacion_contrato) {
+                    <div><span class="text-xs font-medium text-slate-500">Fecha de terminación del contrato</span><p class="text-sm font-semibold text-slate-800">{{ datosHtmlDescarga.fecha_terminacion_contrato }}</p></div>
+                  }
+                  @if (datosHtmlDescarga?.direccion_ejecucion) {
+                    <div class="md:col-span-2 lg:col-span-3"><span class="text-xs font-medium text-slate-500">Dirección de ejecución</span><p class="text-sm font-semibold text-slate-800 whitespace-pre-line">{{ datosHtmlDescarga.direccion_ejecucion }}</p></div>
+                  }
+
+                  @if (datosHtmlDescarga?.usa_documentos_tipo) {
+                    <div class="md:col-span-2 lg:col-span-3">
+                      <span class="text-xs font-medium text-slate-500">Documentos Tipo</span>
+                      <p class="text-sm font-semibold text-slate-800">Sí — {{ datosHtmlDescarga.documentos_tipo_detalle }}</p>
+                    </div>
+                  }
                 </div>
               </div>
             </div>
@@ -78,10 +124,18 @@
                 <i class="fa-solid fa-coins mr-2 text-blue-600"></i> Información Económica
               </h3>
               <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div><span class="text-xs font-medium text-slate-500">Precio Base</span><p class="text-lg font-bold text-slate-800">{{ formatCurrency(process.precio_base) }}</p></div>
-                <div><span class="text-xs font-medium text-slate-500">Valor Adjudicado</span><p class="text-lg font-bold text-green-700">{{ formatCurrency(process.valor_total_adjudicacion) }}</p></div>
+                <div><span class="text-xs font-medium text-slate-500">Precio Base</span><p class="text-lg font-bold text-slate-800">{{ formatCurrency(datosHtmlDescarga?.precio_base || process.precio_base) }}</p></div>
+                <div><span class="text-xs font-medium text-slate-500">Valor Adjudicado</span><p class="text-lg font-bold text-green-700">{{ formatCurrency(datosHtmlDescarga?.valor_adjudicado || process.valor_total_adjudicacion) }}</p></div>
               </div>
             </div>
+
+            @if (!datosHtmlDescarga) {
+              <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-center">
+                <p class="text-sm text-slate-500">
+                  Buscando información adicional de este proceso (o aún no se ha importado su HTML — revisa el mensaje al pie del modal).
+                </p>
+              </div>
+            }
           </div>
         }
 
@@ -91,30 +145,64 @@
             <h3 class="mb-6 flex items-center text-base font-semibold text-slate-800">
               <i class="fa-solid fa-calendar-days mr-2 text-blue-600"></i> Cronograma del Proceso
             </h3>
-            <div class="relative border-l-2 border-slate-200 ml-3 space-y-8">
-              @for (event of cronograma; track event.fecha) {
-                <div class="relative pl-8">
-                  <div class="absolute -left-[9px] top-1 h-4 w-4 rounded-full border-2 border-white" 
-                       [class.bg-green-500]="event.estado === 'Completado'" 
-                       [class.bg-blue-500]="event.estado === 'En curso'" 
-                       [class.bg-slate-300]="event.estado === 'Pendiente'">
+
+            @if (datosHtmlDescarga?.cronograma?.length) {
+              <div class="relative border-l-2 border-slate-200 ml-3 space-y-6">
+                @for (evento of datosHtmlDescarga.cronograma; track evento.evento; let i = $index) {
+                  <div
+                    class="relative pl-8 py-2 pr-3 rounded-r-lg transition-colors"
+                    [class.bg-amber-50]="i === indiceEventoCercano"
+                    [attr.data-cercano]="i === indiceEventoCercano ? 'true' : null"
+                  >
+                    <div
+                      class="absolute -left-[9px] top-3 h-4 w-4 rounded-full border-2 border-white"
+                      [class.bg-amber-500]="i === indiceEventoCercano"
+                      [class.bg-blue-500]="i !== indiceEventoCercano"
+                    ></div>
+                    <div>
+                      <div class="flex items-center gap-2">
+                        <p class="text-sm font-semibold text-slate-800">{{ evento.evento }}</p>
+                        @if (i === indiceEventoCercano) {
+                          <span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
+                            <i class="fa-solid fa-location-dot mr-1"></i> Más cercano a hoy
+                          </span>
+                        }
+                      </div>
+                      <p class="text-xs text-slate-500 mt-1">{{ evento.fecha }}</p>
+                      <p class="text-xs text-slate-400">{{ evento.zona_horaria }}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p class="text-sm font-semibold text-slate-800">{{ event.titulo }}</p>
-                    <p class="text-xs text-slate-500 mt-1">{{ event.fecha }}</p>
-                    <span class="mt-2 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
-                      [class.bg-green-100]="event.estado === 'Completado'"
-                      [class.text-green-800]="event.estado === 'Completado'"
-                      [class.bg-blue-100]="event.estado === 'En curso'"
-                      [class.text-blue-800]="event.estado === 'En curso'"
-                      [class.bg-slate-100]="event.estado === 'Pendiente'"
-                      [class.text-slate-600]="event.estado === 'Pendiente'">
-                      {{ event.estado }}
-                    </span>
+                }
+              </div>
+            } @else {
+              <div class="relative border-l-2 border-slate-200 ml-3 space-y-8">
+                @for (event of cronograma; track event.fecha) {
+                  <div class="relative pl-8">
+                    <div class="absolute -left-[9px] top-1 h-4 w-4 rounded-full border-2 border-white" 
+                         [class.bg-green-500]="event.estado === 'Completado'" 
+                         [class.bg-blue-500]="event.estado === 'En curso'" 
+                         [class.bg-slate-300]="event.estado === 'Pendiente'">
+                    </div>
+                    <div>
+                      <p class="text-sm font-semibold text-slate-800">{{ event.titulo }}</p>
+                      <p class="text-xs text-slate-500 mt-1">{{ event.fecha }}</p>
+                      <span class="mt-2 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
+                        [class.bg-green-100]="event.estado === 'Completado'"
+                        [class.text-green-800]="event.estado === 'Completado'"
+                        [class.bg-blue-100]="event.estado === 'En curso'"
+                        [class.text-blue-800]="event.estado === 'En curso'"
+                        [class.bg-slate-100]="event.estado === 'Pendiente'"
+                        [class.text-slate-600]="event.estado === 'Pendiente'">
+                        {{ event.estado }}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              }
-            </div>
+                }
+              </div>
+              <p class="mt-6 text-xs text-slate-400 italic">
+                Cronograma resumido de SECOP II. Se está buscando el cronograma completo (o aún no se ha importado el HTML de este proceso).
+              </p>
+            }
           </div>
         }
 
@@ -124,34 +212,89 @@
             <div class="px-6 py-4 border-b border-slate-200 bg-slate-50">
               <h3 class="flex items-center text-base font-semibold text-slate-800">
                 <i class="fa-solid fa-folder-open mr-2 text-blue-600"></i> Documentos del Proceso
+                @if (datosHtmlDescarga?.documentos?.length) {
+                  <span class="ml-2 text-xs font-normal text-slate-400">({{ datosHtmlDescarga.documentos.length }})</span>
+                }
               </h3>
             </div>
-            <div class="overflow-x-auto">
-              <table class="w-full text-left text-sm">
-                <thead class="bg-slate-50 text-slate-600">
-                  <tr>
-                    <th class="px-6 py-3 font-medium">Nombre del documento</th>
-                    <th class="px-6 py-3 font-medium">Tipo</th>
-                    <th class="px-6 py-3 font-medium text-right">Acción</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-200">
-                  <tr class="hover:bg-slate-50 transition-colors">
-                    <td class="px-6 py-4">
-                      <div class="flex items-center">
-                        <i class="fa-solid fa-file-pdf text-red-500 mr-3 text-lg"></i>
-                        <span class="font-medium text-slate-800">Pliegos y Documentos del Proceso</span>
-                      </div>
-                    </td>
-                    <td class="px-6 py-4 text-slate-600">Documento oficial</td>
-                    <td class="px-6 py-4 text-right">
-                      <a [href]="process.urlproceso" target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium">
-                        Ver en SECOP <i class="fa-solid fa-external-link-alt ml-1 text-xs"></i>
-                      </a>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+            <div class="overflow-x-auto max-h-[50vh]">
+              @if (datosHtmlDescarga?.documentos?.length) {
+                <table class="w-full text-left text-sm">
+                  <thead class="bg-slate-50 text-slate-600 sticky top-0">
+                    <tr>
+                      <th class="px-6 py-3 font-medium">Nombre del documento</th>
+                      <th class="px-6 py-3 font-medium text-right">Acción</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-200">
+                    @for (doc of datosHtmlDescarga.documentos; track doc.enlace; let i = $index) {
+                      <tr
+                        class="hover:bg-slate-50 transition-colors"
+                        [class.bg-amber-50]="i === indiceDocumentoReciente"
+                        [class.bg-blue-50]="i !== indiceDocumentoReciente && esDocumentoDestacado(doc.nombre_documento)"
+                        [class.border-l-4]="esDocumentoDestacado(doc.nombre_documento)"
+                        [class.border-blue-400]="esDocumentoDestacado(doc.nombre_documento)"
+                        [attr.data-documento-reciente]="i === indiceDocumentoReciente ? 'true' : null"
+                      >
+                        <td class="px-6 py-3">
+                          <div class="flex items-center gap-2">
+                            <i
+                              class="fa-solid fa-file"
+                              [class.text-blue-500]="esDocumentoDestacado(doc.nombre_documento)"
+                              [class.text-red-500]="!esDocumentoDestacado(doc.nombre_documento)"
+                            ></i>
+                            <span class="font-medium text-slate-800">{{ doc.nombre_documento }}</span>
+                            @if (esDocumentoDestacado(doc.nombre_documento)) {
+                              <span class="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-800">
+                                <i class="fa-solid fa-star mr-1"></i> Clave
+                              </span>
+                            }
+                            @if (i === indiceDocumentoReciente) {
+                              <span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
+                                <i class="fa-solid fa-clock-rotate-left mr-1"></i> Más reciente
+                              </span>
+                            }
+                          </div>
+                        </td>
+                        <td class="px-6 py-3 text-right">
+                          <a [href]="secopIIUrl(doc.enlace)" target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium">
+                            Descargar <i class="fa-solid fa-external-link-alt ml-1 text-xs"></i>
+                          </a>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              } @else {
+                <table class="w-full text-left text-sm">
+                  <thead class="bg-slate-50 text-slate-600">
+                    <tr>
+                      <th class="px-6 py-3 font-medium">Nombre del documento</th>
+                      <th class="px-6 py-3 font-medium">Tipo</th>
+                      <th class="px-6 py-3 font-medium text-right">Acción</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-200">
+                    <tr class="hover:bg-slate-50 transition-colors">
+                      <td class="px-6 py-4">
+                        <div class="flex items-center">
+                          <i class="fa-solid fa-file-pdf text-red-500 mr-3 text-lg"></i>
+                          <span class="font-medium text-slate-800">Pliegos y Documentos del Proceso</span>
+                        </div>
+                      </td>
+                      <td class="px-6 py-4 text-slate-600">Documento oficial</td>
+                      <td class="px-6 py-4 text-right">
+                        <a [href]="process.urlproceso" target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium">
+                          Ver en SECOP <i class="fa-solid fa-external-link-alt ml-1 text-xs"></i>
+                        </a>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                <p class="px-6 py-4 text-xs text-slate-400 italic">
+                  Se está buscando el listado completo de documentos (o aún no se ha importado el HTML de este proceso).
+                </p>
+              }
             </div>
           </div>
         }
@@ -161,26 +304,66 @@
           <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
             <h3 class="mb-4 flex items-center text-base font-semibold text-slate-800">
               <i class="fa-solid fa-comments mr-2 text-blue-600"></i> Observaciones y Mensajes
+              @if (datosHtmlDescarga?.observaciones?.length) {
+                <span class="ml-2 text-xs font-normal text-slate-400">({{ datosHtmlDescarga.observaciones.length }})</span>
+              }
             </h3>
-            <div class="flex flex-col items-center justify-center py-12 text-center">
-              <i class="fa-regular fa-comment-dots text-4xl text-slate-300 mb-3"></i>
-              <p class="text-slate-600 font-medium">No hay observaciones o mensajes registrados</p>
-              <p class="text-sm text-slate-400 mt-1">Esta información no está disponible en el resumen actual del proceso.</p>
-            </div>
+
+            @if (datosHtmlDescarga?.observaciones?.length) {
+              <div class="divide-y divide-slate-100 max-h-[55vh] overflow-y-auto">
+                @for (obs of datosHtmlDescarga.observaciones; track obs.referencia) {
+                  <div class="py-3">
+                    <div class="flex items-center justify-between">
+                      <span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+                        {{ obs.tipo || 'General' }}
+                      </span>
+                      <span class="text-xs text-slate-400">{{ obs.fecha }}</span>
+                    </div>
+                    <p class="mt-1 text-sm text-slate-800">{{ obs.asunto }}</p>
+                    <p class="text-xs text-slate-400">{{ obs.referencia }}</p>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="flex flex-col items-center justify-center py-12 text-center">
+                <i class="fa-regular fa-comment-dots text-4xl text-slate-300 mb-3"></i>
+                <p class="text-slate-600 font-medium">No hay observaciones o mensajes registrados</p>
+                <p class="text-sm text-slate-400 mt-1">Se están buscando (o aún no se ha importado el HTML de este proceso).</p>
+              </div>
+            }
           </div>
         }
 
       </main>
 
       <!-- Pie de modal -->
-      <footer class="flex items-center justify-end gap-3 border-t border-slate-200 bg-white px-6 py-4">
-        <button type="button" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50" (click)="closeModal()">
-          Cerrar
-        </button>
-        <a [href]="process.urlproceso" target="_blank" class="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700">
-          <i class="fa-solid fa-external-link-alt mr-2"></i>
-          Ver en SECOP II
-        </a>
+      <footer class="flex items-center justify-between gap-3 border-t border-slate-200 bg-white px-6 py-4">
+        <div class="flex items-center gap-2">
+          @if (cargandoHtmlDescarga) {
+            <span class="text-xs text-slate-400">
+              <i class="fa-solid fa-spinner fa-spin mr-1"></i> Buscando información adicional...
+            </span>
+          } @else if (carpetaNoEncontrada) {
+            <span class="text-xs text-slate-400">
+              <i class="fa-regular fa-folder-open mr-1"></i> Aún no se ha importado el HTML de este proceso.
+            </span>
+          } @else if (errorHtmlDescarga) {
+            <span class="text-xs text-red-600 max-w-xs">{{ errorHtmlDescarga }}</span>
+          } @else if (datosHtmlDescarga) {
+            <span class="text-xs text-green-600">
+              <i class="fa-solid fa-circle-check mr-1"></i> Información adicional cargada
+            </span>
+          }
+        </div>
+        <div class="flex items-center gap-3">
+          <button type="button" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50" (click)="closeModal()">
+            Cerrar
+          </button>
+          <a [href]="process.urlproceso" target="_blank" class="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700">
+            <i class="fa-solid fa-external-link-alt mr-2"></i>
+            Ver en SECOP II
+          </a>
+        </div>
       </footer>
 
     </div>

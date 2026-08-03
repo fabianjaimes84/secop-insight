@@ -15,6 +15,17 @@ __pycache__/
 .coverage
 htmlcov/
 
+# Base de datos local (SQLite)
+backend/*.db
+backend/*.db-journal
+*.db
+*.db-journal
+
+# HTML descargados manualmente de SECOP II
+# (backend/documentos/{codigo_proceso}/Index.htm) — son archivos locales
+# de cada usuario, no código, y pueden pesar bastante.
+backend/documentos/
+
 # Entornos virtuales
 venv/
 .venv/
