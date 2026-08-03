@@ -1,0 +1,237 @@
+<div class="p-6">
+
+  <div class="mb-6">
+    <h1 class="text-xl font-bold text-slate-800">Dashboard</h1>
+    <p class="text-sm text-slate-500">Resumen general de tu actividad en SECOP II Insight.</p>
+  </div>
+
+  @if (estadisticas$ | async; as stats) {
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+
+      <!-- Procesos activos -->
+      <div class="rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div class="flex items-center gap-4 p-5">
+          <div class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-blue-50">
+            <i class="fa-solid fa-folder-open text-lg text-blue-600"></i>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-slate-500">Procesos activos</p>
+            <p class="text-2xl font-bold text-slate-800">{{ stats.activos }}</p>
+            <p class="text-[11px] text-slate-400">Con oferta ya enviada</p>
+          </div>
+        </div>
+
+        @if (stats.gruposActivos.length) {
+          <div class="border-t border-slate-100 px-4 py-3">
+            @for (grupo of stats.gruposActivos; track grupo.evento) {
+              <div class="mb-4 last:mb-0">
+                <div class="mb-2 flex items-center gap-2">
+                  <span class="h-2 w-2 rounded-full"
+                    [class.bg-purple-500]="grupo.color === 'purple'"
+                    [class.bg-blue-500]="grupo.color === 'blue'"
+                    [class.bg-teal-500]="grupo.color === 'teal'"
+                    [class.bg-orange-500]="grupo.color === 'orange'"
+                    [class.bg-amber-500]="grupo.color === 'amber'"
+                    [class.bg-yellow-500]="grupo.color === 'yellow'"
+                    [class.bg-pink-500]="grupo.color === 'pink'"
+                    [class.bg-green-500]="grupo.color === 'green'"
+                    [class.bg-emerald-500]="grupo.color === 'emerald'"
+                    [class.bg-slate-400]="grupo.color === 'slate'"></span>
+                  <p class="text-[11px] font-semibold uppercase tracking-wide text-slate-600">
+                    {{ grupo.evento }}
+                  </p>
+                </div>
+
+                @for (item of grupo.items; track item.numeroProceso) {
+                  <div class="mb-2 flex cursor-pointer items-center gap-3 rounded-lg border-l-4 p-2 last:mb-0 transition-all"
+                    [attr.data-activo]="item.numeroProceso"
+                    (click)="alternarExpansion(item.numeroProceso)"
+                    (mouseenter)="procesoResaltado = item.numeroProceso"
+                    (mouseleave)="procesoResaltado = null"
+                    [class.ring-2]="esResaltado(item.numeroProceso)"
+                    [class.ring-slate-800]="esResaltado(item.numeroProceso)"
+                    [class.border-purple-400]="grupo.color === 'purple'"
+                    [class.bg-purple-50]="grupo.color === 'purple'"
+                    [class.border-blue-400]="grupo.color === 'blue'"
+                    [class.bg-blue-50]="grupo.color === 'blue'"
+                    [class.border-teal-400]="grupo.color === 'teal'"
+                    [class.bg-teal-50]="grupo.color === 'teal'"
+                    [class.border-orange-400]="grupo.color === 'orange'"
+                    [class.bg-orange-50]="grupo.color === 'orange'"
+                    [class.border-amber-400]="grupo.color === 'amber'"
+                    [class.bg-amber-50]="grupo.color === 'amber'"
+                    [class.border-yellow-400]="grupo.color === 'yellow'"
+                    [class.bg-yellow-50]="grupo.color === 'yellow'"
+                    [class.border-pink-400]="grupo.color === 'pink'"
+                    [class.bg-pink-50]="grupo.color === 'pink'"
+                    [class.border-green-400]="grupo.color === 'green'"
+                    [class.bg-green-50]="grupo.color === 'green'"
+                    [class.border-emerald-400]="grupo.color === 'emerald'"
+                    [class.bg-emerald-50]="grupo.color === 'emerald'"
+                    [class.border-slate-300]="grupo.color === 'slate'"
+                    [class.bg-slate-50]="grupo.color === 'slate'">
+
+                    <div class="min-w-0 flex-1">
+                      <p class="truncate text-xs font-semibold text-slate-700">{{ item.numeroProceso }}</p>
+                      <p class="truncate text-[11px] text-slate-500">{{ item.entidad }}</p>
+                      @if (item.eventoAnteriorNombre) {
+                        <p class="truncate text-[11px] text-slate-400">
+                          <i class="fa-regular fa-circle-check mr-1"></i>{{ item.eventoAnteriorNombre }}: {{ formatearFecha(item.eventoAnteriorFecha, item.eventoAnteriorZona) }}
+                        </p>
+                      }
+                    </div>
+
+                    <div class="flex-shrink-0 rounded-md bg-white/70 px-2 py-1 text-center">
+                      <p class="text-xl font-bold leading-none text-slate-800">
+                        {{ diaDeFecha(item.proximoEventoFecha, item.proximoEventoZona) }}
+                      </p>
+                      <p class="mt-0.5 text-[10px] leading-tight text-slate-500">
+                        {{ restoDeFecha(item.proximoEventoFecha, item.proximoEventoZona) }}
+                      </p>
+                    </div>
+                  </div>
+
+                  @if (estaExpandido(item.numeroProceso)) {
+                    <div class="mb-2 rounded-lg border border-slate-200 bg-white p-3 text-[11px]">
+                      <p class="mb-1 font-semibold text-slate-700">{{ item.proceso.descripci_n_del_procedimiento || item.numeroProceso }}</p>
+                      <div class="grid grid-cols-1 gap-1">
+                        <p><span class="text-slate-400">Entidad:</span> {{ item.entidad }}</p>
+                        <p><span class="text-slate-400">Próximo hito:</span> {{ item.proximoEventoNombre }}</p>
+                        <p><span class="text-slate-400">Fecha:</span> {{ formatearFecha(item.proximoEventoFecha, item.proximoEventoZona) }}</p>
+                      </div>
+                      <div class="mt-2 flex items-center justify-between border-t border-slate-100 pt-2">
+                        <p class="text-[10px] text-slate-400">
+                          <i class="fa-solid fa-download mr-1"></i>Descargado: {{ formatearUltimaActualizacion(item.ultimaActualizacion) }}
+                        </p>
+                        <button type="button" class="rounded bg-blue-600 px-2 py-1 text-[11px] text-white transition hover:bg-blue-700"
+                          (click)="abrirModal(item.proceso, $event)">
+                          Ver detalle completo
+                        </button>
+                      </div>
+                    </div>
+                  }
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Próximos a cerrar -->
+      <div class="rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div class="flex items-center gap-4 p-5">
+          <div class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-orange-50">
+            <i class="fa-solid fa-calendar-days text-lg text-orange-500"></i>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-slate-500">Próximos a cerrar</p>
+            <p class="text-2xl font-bold text-slate-800">{{ stats.proximosACerrar }}</p>
+            <p class="text-[11px] text-slate-400">Cierran en 5 días o menos</p>
+          </div>
+        </div>
+
+        @if (stats.listaProximosACerrar.length) {
+          <div class="border-t border-slate-100 px-4 py-3">
+            @for (item of stats.listaProximosACerrar; track item.numeroProceso) {
+              <div class="mb-2 flex cursor-pointer items-center gap-3 rounded-lg border-l-4 border-orange-400 bg-orange-50 p-2 last:mb-0 transition-all"
+                (click)="alternarExpansion(item.numeroProceso)"
+                (mouseenter)="procesoResaltado = item.numeroProceso"
+                (mouseleave)="procesoResaltado = null"
+                [class.ring-2]="esResaltado(item.numeroProceso)"
+                [class.ring-slate-800]="esResaltado(item.numeroProceso)">
+                <div class="min-w-0 flex-1">
+                  <p class="truncate text-xs font-semibold text-slate-700">{{ item.numeroProceso }}</p>
+                  <p class="truncate text-[11px] text-slate-500">{{ item.entidad }} · {{ item.fase }}</p>
+                  @if (item.fechaAdenda) {
+                    <p class="truncate text-[11px] text-slate-500">
+                      <i class="fa-regular fa-file-lines mr-1"></i>Adenda: {{ formatearFecha(item.fechaAdenda, item.zonaAdenda) }}
+                    </p>
+                  }
+                </div>
+
+                <div class="flex-shrink-0 rounded-md bg-white/70 px-2 py-1 text-center">
+                  <p class="text-xl font-bold leading-none text-orange-700">
+                    {{ diaDeFecha(item.fecha, item.zonaHoraria) }}
+                  </p>
+                  <p class="mt-0.5 text-[10px] leading-tight text-slate-500">
+                    {{ restoDeFecha(item.fecha, item.zonaHoraria) }}
+                  </p>
+                </div>
+              </div>
+
+              @if (estaExpandido(item.numeroProceso)) {
+                <div class="mb-2 rounded-lg border border-slate-200 bg-white p-3 text-[11px]">
+                  <p class="mb-1 font-semibold text-slate-700">{{ item.proceso.descripci_n_del_procedimiento || item.numeroProceso }}</p>
+                  <div class="grid grid-cols-1 gap-1 sm:grid-cols-2">
+                    <p><span class="text-slate-400">Entidad:</span> {{ item.entidad }}</p>
+                    <p><span class="text-slate-400">Fase:</span> {{ item.fase }}</p>
+                    <p><span class="text-slate-400">Modalidad:</span> {{ item.proceso.modalidad_de_contratacion }}</p>
+                    <p><span class="text-slate-400">Tipo de contrato:</span> {{ item.proceso.tipo_de_contrato }}</p>
+                    <p><span class="text-slate-400">Cierre de ofertas:</span> {{ formatearFecha(item.fecha, item.zonaHoraria) }}</p>
+                    @if (item.fechaAdenda) {
+                      <p><span class="text-slate-400">Plazo adendas:</span> {{ formatearFecha(item.fechaAdenda, item.zonaAdenda) }}</p>
+                    }
+                  </div>
+                  <div class="mt-2 flex items-center justify-between border-t border-slate-100 pt-2">
+                    <p class="text-[10px] text-slate-400">
+                      <i class="fa-solid fa-download mr-1"></i>Descargado: {{ formatearUltimaActualizacion(item.ultimaActualizacion) }}
+                    </p>
+                    <button type="button" class="rounded bg-blue-600 px-2 py-1 text-[11px] text-white transition hover:bg-blue-700"
+                      (click)="abrirModal(item.proceso, $event)">
+                      Ver detalle completo
+                    </button>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Favoritos -->
+      <div class="rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div class="flex items-center gap-4 p-5">
+          <div class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-amber-50">
+            <i class="fa-solid fa-star text-lg text-amber-500"></i>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-slate-500">Favoritos</p>
+            <p class="text-2xl font-bold text-slate-800">{{ stats.favoritos }}</p>
+            <p class="text-[11px] text-slate-400">Procesos guardados</p>
+          </div>
+        </div>
+
+        @if (stats.listaFavoritos.length) {
+          <div class="border-t border-slate-100 px-5 py-3">
+            @for (item of stats.listaFavoritos; track item.numeroProceso) {
+              <div class="cursor-pointer rounded-lg border-b border-slate-50 px-2 py-2 last:border-0 transition-all"
+                (click)="expandirEnActivos(item.numeroProceso)"
+                (mouseenter)="procesoResaltado = item.numeroProceso"
+                (mouseleave)="procesoResaltado = null"
+                [class.ring-2]="esResaltado(item.numeroProceso)"
+                [class.ring-slate-800]="esResaltado(item.numeroProceso)"
+                [class.bg-slate-50]="esResaltado(item.numeroProceso)">
+                <p class="text-xs font-semibold text-slate-700">{{ item.numeroProceso }}</p>
+                <p class="text-[11px] text-slate-500">{{ item.entidad }}</p>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+    </div>
+
+    @if (stats.favoritos === 0) {
+      <div class="mt-6 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center">
+        <p class="text-sm text-slate-500">
+          Aún no has guardado procesos en Seguimiento. Ve a <strong>Buscar Procesos</strong> y usa la estrella para empezar.
+        </p>
+      </div>
+    }
+  }
+
+</div>
+
+<!-- Modal de detalle del proceso (el mismo del buscador) -->
+<app-process-detail [open]="detailOpen" [process]="selectedProcess" (close)="cerrarModal()">
+</app-process-detail>

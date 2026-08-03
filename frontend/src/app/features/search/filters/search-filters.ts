@@ -5,6 +5,7 @@ import { Card } from '../../../shared/ui/card/card';
 
 import { SearchRequest } from '../models/search-request.model';
 import { SearchService } from '../services/search.service';
+import { SearchStateService } from '../services/search-state.service';
 
 @Component({
   selector: 'app-search-filters',
@@ -21,6 +22,7 @@ export class SearchFilters implements OnInit, AfterViewInit {
 
   private readonly fb = inject(FormBuilder);
   private readonly searchService = inject(SearchService);
+  private readonly searchState = inject(SearchStateService);
 
   // ==========================================
   // Referencias al DOM
@@ -60,9 +62,15 @@ export class SearchFilters implements OnInit, AfterViewInit {
       fecha_publicacion_desde: [''],
       fecha_publicacion_hasta: [''],
     });
-    
-    // Establecer fechas por defecto al iniciar
-    this.setFechasPorDefecto();
+
+    if (this.searchState.ultimosFiltros) {
+      // Ya se había buscado antes (venimos de otra pestaña): restaurar
+      // exactamente lo que el usuario tenía escrito.
+      this.searchForm.patchValue(this.searchState.ultimosFiltros);
+    } else {
+      // Primera vez que se abre esta pantalla: fechas por defecto.
+      this.setFechasPorDefecto();
+    }
   }
 
   // ==========================================
@@ -150,6 +158,11 @@ export class SearchFilters implements OnInit, AfterViewInit {
     filtros.fecha_publicacion_hasta = normalizeDate(filtros.fecha_publicacion_hasta);
 
     console.log('Filtros enviados al backend:', filtros);
+
+    // Guardar lo que el usuario escribió, para restaurarlo si vuelve
+    // a esta pantalla desde otra pestaña.
+    this.searchState.ultimosFiltros = this.searchForm.getRawValue();
+
     this.onSearch.emit(filtros);
   }
 
@@ -167,6 +180,10 @@ export class SearchFilters implements OnInit, AfterViewInit {
 
     // Restablecer fechas por defecto
     this.setFechasPorDefecto();
+
+    // También olvidar lo guardado, para que no reaparezca si el
+    // usuario cambia de pestaña y vuelve.
+    this.searchState.ultimosFiltros = null;
 
     this.onClear.emit();
 

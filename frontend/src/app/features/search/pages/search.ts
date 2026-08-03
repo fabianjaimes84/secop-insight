@@ -5,6 +5,7 @@ import { Proceso } from '@core/models/proceso';
 import { SearchFilters } from '@features/search/filters/search-filters';
 import { SearchRequest } from '@features/search/models/search-request.model';
 import { ProcessSearchService } from '@features/search/services/process-search.service';
+import { SearchStateService } from '@features/search/services/search-state.service';
 import { ResultsTable } from '@features/search/table/results-table';
 
 @Component({
@@ -20,12 +21,16 @@ export class Search {
   // ==========================================
 
   private readonly processSearchService = inject(ProcessSearchService);
+  private readonly searchState = inject(SearchStateService);
 
   // ==========================================
   // Estado del componente
   // ==========================================
 
-  processes: Proceso[] = [];
+  /** Los resultados viven en el servicio, así sobreviven al cambiar de pestaña. */
+  get processes(): Proceso[] {
+    return this.searchState.processes;
+  }
 
   @ViewChild(ResultsTable)
   resultsTable!: ResultsTable;
@@ -37,7 +42,7 @@ export class Search {
   search(filters: SearchRequest): void {
     this.processSearchService.search(filters).subscribe({
       next: (response: Proceso[]) => {
-        this.processes = response;
+        this.searchState.guardarBusqueda(filters, response);
       },
 
       error: (error: unknown) => {
@@ -51,7 +56,7 @@ export class Search {
   // ==========================================
 
   clearResults(): void {
-    this.processes = [];
+    this.searchState.limpiar();
 
     this.resultsTable?.clearSearch();
   }

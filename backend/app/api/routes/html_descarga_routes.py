@@ -1,4 +1,6 @@
 import re
+import unicodedata
+from datetime import datetime
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
@@ -65,8 +67,13 @@ async def importar_html_descarga(
         contenido_html = contenido_bytes.decode("utf-8", errors="ignore")
         datos_extraidos = service.procesar_html(contenido_html)
 
+        # En una subida manual no hay archivo en disco del cual leer la fecha
+        # de descarga, así que se usa el momento de la importación.
         repositorio = HtmlDescargaRepository(db)
-        proceso_guardado = repositorio.guardar_proceso(datos_extraidos)
+        proceso_guardado = repositorio.guardar_proceso(
+            datos_extraidos,
+            fecha_descarga=datetime.now().isoformat(timespec="seconds"),
+        )
 
         return RespuestaImportacionHtmlDescarga(
             proceso_id=proceso_guardado.id,
@@ -90,10 +97,146 @@ async def importar_html_descarga(
         )
 
 
+def _normalizar(texto: str) -> str:
+    """Quita tildes y pasa a minúsculas, para comparar nombres de eventos."""
+    sin_tildes = unicodedata.normalize("NFD", texto)
+    sin_tildes = "".join(c for c in sin_tildes if unicodedata.category(c) != "Mn")
+    return sin_tildes.lower().strip()
+
+
+_PATRON_FECHA = re.compile(
+    r"(\d{1,2})/(\d{1,2})/(\d{4})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?",
+    re.IGNORECASE,
+)
+
+
+def _parsear_fecha_evento(fecha: str, zona_horaria: str) -> datetime | None:
+    """
+    Igual que en el modal (Angular): la fecha real puede venir directa en
+    'fecha', o escondida dentro de 'zona_horaria' cuando el texto de 'fecha'
+    es relativo (ej. '26 días de tiempo transcurrido').
+    """
+    coincidencia = _PATRON_FECHA.search(fecha) or _PATRON_FECHA.search(zona_horaria)
+    if not coincidencia:
+        return None
+
+    dia, mes, anio, horas12, minutos, segundos, ampm = coincidencia.groups()
+    horas = int(horas12)
+    if ampm:
+        es_pm = ampm.upper() == "PM"
+        if es_pm and horas < 12:
+            horas += 12
+        if not es_pm and horas == 12:
+            horas = 0
+
+    try:
+        return datetime(
+            int(anio), int(mes), int(dia), horas, int(minutos), int(segundos or 0)
+        )
+    except ValueError:
+        return None
+
+
+def _buscar_evento_por_nombre(cronograma, nombre_exacto: str, contiene: list[str]):
+    """Busca primero por nombre exacto; si no aparece, por coincidencia parcial."""
+    exacto = next(
+        (e for e in cronograma if _normalizar(e.evento) == nombre_exacto), None
+    )
+    if exacto:
+        return exacto
+
+    return next(
+        (
+            e
+            for e in cronograma
+            if all(palabra in _normalizar(e.evento) for palabra in contiene)
+        ),
+        None,
+    )
+
+
+def _proximo_evento_pendiente(cronograma):
+    """El evento del cronograma con la fecha más próxima que aún no ha pasado."""
+    ahora = datetime.now()
+    candidatos = []
+
+    for evento in cronograma:
+        fecha = _parsear_fecha_evento(evento.fecha, evento.zona_horaria)
+        if fecha and fecha >= ahora:
+            candidatos.append((fecha, evento))
+
+    if not candidatos:
+        return None
+
+    candidatos.sort(key=lambda par: par[0])
+    return candidatos[0][1]
+
+
+def _evento_anterior(cronograma):
+    """
+    El evento más reciente cuya fecha YA pasó, es decir, el hito
+    inmediatamente anterior al próximo pendiente.
+    """
+    ahora = datetime.now()
+    pasados = []
+
+    for evento in cronograma:
+        fecha = _parsear_fecha_evento(evento.fecha, evento.zona_horaria)
+        if fecha and fecha < ahora:
+            pasados.append((fecha, evento))
+
+    if not pasados:
+        return None
+
+    pasados.sort(key=lambda par: par[0], reverse=True)
+    return pasados[0][1]
+
+
 @router.get("/procesos", response_model=list[ProcesoHtmlDescargaResumen])
 def listar_procesos(db: Session = Depends(obtener_db)):
     """Lista resumida de todos los procesos SECOP I guardados, más recientes primero."""
-    return db.query(ProcesoHtmlDescarga).order_by(ProcesoHtmlDescarga.id.desc()).all()
+    procesos = db.query(ProcesoHtmlDescarga).order_by(ProcesoHtmlDescarga.id.desc()).all()
+
+    resultado = []
+    for proceso in procesos:
+        evento_ofertas = _buscar_evento_por_nombre(
+            proceso.cronograma, "presentacion de ofertas", ["presentaci", "oferta"]
+        )
+        evento_adenda = _buscar_evento_por_nombre(
+            proceso.cronograma,
+            "plazo maximo para expedir adendas",
+            ["plazo", "adenda"],
+        )
+        proximo = _proximo_evento_pendiente(proceso.cronograma)
+        anterior = _evento_anterior(proceso.cronograma)
+
+        resultado.append(
+            ProcesoHtmlDescargaResumen(
+                id=proceso.id,
+                numero_proceso=proceso.numero_proceso,
+                titulo=proceso.titulo,
+                entidad=proceso.entidad,
+                estado=proceso.estado,
+                fase=proceso.fase,
+                ultima_actualizacion=proceso.ultima_actualizacion or "",
+                fecha_presentacion_ofertas=(
+                    evento_ofertas.fecha if evento_ofertas else ""
+                ),
+                zona_presentacion_ofertas=(
+                    evento_ofertas.zona_horaria if evento_ofertas else ""
+                ),
+                fecha_adenda=evento_adenda.fecha if evento_adenda else "",
+                zona_adenda=evento_adenda.zona_horaria if evento_adenda else "",
+                proximo_evento_nombre=proximo.evento if proximo else "",
+                proximo_evento_fecha=proximo.fecha if proximo else "",
+                proximo_evento_zona=proximo.zona_horaria if proximo else "",
+                evento_anterior_nombre=anterior.evento if anterior else "",
+                evento_anterior_fecha=anterior.fecha if anterior else "",
+                evento_anterior_zona=anterior.zona_horaria if anterior else "",
+            )
+        )
+
+    return resultado
 
 
 @router.get("/procesos/{proceso_id}", response_model=ProcesoHtmlDescargaDetalle)
@@ -140,11 +283,21 @@ def actualizar_desde_carpeta(codigo_proceso: str, db: Session = Depends(obtener_
         )
 
     try:
-        contenido_html = archivos_html[0].read_text(encoding="utf-8", errors="ignore")
+        archivo_html = archivos_html[0]
+        contenido_html = archivo_html.read_text(encoding="utf-8", errors="ignore")
         datos_extraidos = service.procesar_html(contenido_html)
 
+        # La "última actualización" es la fecha real en que se descargó el
+        # archivo HTML desde SECOP II (fecha de modificación del archivo en
+        # disco), NO el momento en que se importó a la base de datos.
+        fecha_archivo = datetime.fromtimestamp(
+            archivo_html.stat().st_mtime
+        ).isoformat(timespec="seconds")
+
         repositorio = HtmlDescargaRepository(db)
-        proceso_guardado = repositorio.guardar_proceso(datos_extraidos)
+        proceso_guardado = repositorio.guardar_proceso(
+            datos_extraidos, fecha_descarga=fecha_archivo
+        )
         return proceso_guardado
 
     except HtmlDescargaServiceError as e:

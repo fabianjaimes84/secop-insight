@@ -29,12 +29,12 @@
        Tabla de resultados
        ========================== -->
 
-  <div class="overflow-x-auto">
-    <table class="min-w-full text-xs">
+  <div class="w-full">
+    <table class="w-full table-fixed text-xs">
       <thead class="sticky top-0 bg-slate-50">
         <tr>
 
-          <th class="min-w-[80px] cursor-pointer px-8 py-3 text-left font-semibold hover:bg-slate-100 transition"
+          <th class="w-[8%] cursor-pointer px-3 py-3 text-left font-semibold hover:bg-slate-100 transition"
             (click)="sort('entidad')">
             <div class="flex items-center gap-2">
               <span>Entidad estatal</span>
@@ -44,7 +44,7 @@
             </div>
           </th>
 
-          <th class="min-w-[50px] cursor-pointer px-3 py-3 text-center font-semibold hover:bg-slate-100 transition"
+          <th class="w-[8%] cursor-pointer px-2 py-3 text-center font-semibold hover:bg-slate-100 transition"
             (click)="sort('referencia_del_proceso')">
             <div class="flex items-center gap-2">
               <span>Referencia</span>
@@ -54,7 +54,7 @@
             </div>
           </th>
 
-          <th class="min-w-[300px] cursor-pointer px-3 py-3 text-center font-semibold hover:bg-slate-100 transition"
+          <th class="w-[41%] cursor-pointer px-3 py-3 text-left font-semibold hover:bg-slate-100 transition"
             (click)="sort('nombre_del_procedimiento')">
             <div class="flex items-center gap-2">
               <span>Descripción</span>
@@ -64,7 +64,7 @@
             </div>
           </th>
 
-          <th class="min-w-[120px] cursor-pointer px-3 py-3 text-center font-semibold hover:bg-slate-100 transition"
+          <th class="w-[7%] cursor-pointer px-2 py-3 text-center font-semibold hover:bg-slate-100 transition"
             (click)="sort('fecha_de_publicacion_del')">
             <div class="flex items-center gap-2">
               <span>Publicación Oferta</span>
@@ -74,7 +74,7 @@
             </div>
           </th>
 
-          <th class="min-w-[120px] cursor-pointer px-3 py-3 text-center font-semibold hover:bg-slate-100 transition"
+          <th class="w-[7%] cursor-pointer px-2 py-3 text-center font-semibold hover:bg-slate-100 transition"
             (click)="sort('fecha_de_ultima_publicaci')">
             <div class="flex items-center gap-2">
               <span>Presentación Ofertas</span>
@@ -84,7 +84,7 @@
             </div>
           </th>
 
-          <th class="min-w-[120px] cursor-pointer px-8 py-3 text-center font-semibold hover:bg-slate-100 transition"
+          <th class="w-[7%] cursor-pointer px-2 py-3 text-center font-semibold hover:bg-slate-100 transition"
             (click)="sort('precio_base')">
             <div class="flex items-center gap-2">
               <span>Cuantía</span>
@@ -94,7 +94,7 @@
             </div>
           </th>
 
-          <th class="min-w-[120px] cursor-pointer px-8 py-3 text-center font-semibold hover:bg-slate-100 transition"
+          <th class="w-[7%] cursor-pointer px-2 py-3 text-center font-semibold hover:bg-slate-100 transition"
             (click)="sort('estado_resumen')">
             <div class="flex items-center gap-2">
               <span>Estado</span>
@@ -104,7 +104,7 @@
             </div>
           </th>
 
-          <th class="min-w-[120px] cursor-pointer px-8 py-3 text-center font-semibold hover:bg-slate-100 transition"
+          <th class="w-[7%] cursor-pointer px-2 py-3 text-center font-semibold hover:bg-slate-100 transition"
             (click)="sort('estado_resumen')">
             <div class="flex items-center gap-2">
               <span>Tipo de Contrado</span>
@@ -114,9 +114,9 @@
             </div>
           </th>
 
-          <th class="min-w-[50px] px-3 py-3 text-center font-semibold">Ver</th>
+          <th class="w-[4%] px-1 py-3 text-center font-semibold">Ver</th>
 
-          <th class="min-w-[50px] px-3 py-3 text-center font-semibold">Guardar</th>
+          <th class="w-[4%] px-1 py-3 text-center font-semibold">Guardar</th>
         </tr>
       </thead>
 
@@ -124,36 +124,36 @@
         @for (process of paginatedProcesses; track process.id_del_proceso) {
         <tr class="border-t border-slate-200 hover:bg-slate-50">
           <!-- Entidad -->
-          <td class="px-3 py-3 align-top">
+          <td class="px-3 py-3 align-top break-words">
             {{ process.entidad }}
           </td>
 
           <!-- Referencia -->
-          <td class="px-3 py-3 align-top">
+          <td class="px-2 py-3 align-top break-words">
             {{ process.referencia_del_proceso }}
           </td>
 
           <!-- Descripción -->
-          <td class="px-3 py-3 align-top leading-5">
+          <td class="px-3 py-3 align-top leading-5 break-words whitespace-normal">
             {{ process.descripci_n_del_procedimiento }}
           </td>
 
           <!-- Fecha Publicacion -->
-          <td class="px-3 py-3 text-center align-top">
+          <td class="px-2 py-3 text-center align-top">
             <div>
               {{ formatFecha(process.fecha_de_ultima_publicaci)[0] }}
             </div>
           </td>
 
           <!-- Fecha Presentación -->
-          <td class="px-3 py-3 text-center align-top">
+          <td class="px-2 py-3 text-center align-top">
             <div>
               {{ formatFecha(process.fecha_de_recepcion_de)[0] }}
             </div>
           </td>
 
           <!-- Cuantía -->
-          <td class="px-3 py-3 text-center align-top">
+          <td class="px-2 py-3 text-center align-top">
             <div>
               {{ formatMoneda(process.precio_base) }}
             </div>
@@ -164,14 +164,14 @@
           </td>
 
           <!-- Estado -->
-          <td class="px-3 py-3 text-center align-top">
-            <span class="inline-flex rounded px-2 py-1 text-xs" [class]="getEstadoClass(process.estado_resumen)">
+          <td class="px-2 py-3 text-center align-top">
+            <span class="inline-flex rounded px-2 py-1 text-[11px] leading-4 break-words" [class]="getEstadoClass(process.estado_resumen)">
               {{ process.estado_resumen }}
             </span>
           </td>
 
           <!-- process.tipo_de_contrato -->
-          <td class="px-3 py-3 align-top">
+          <td class="px-2 py-3 text-center align-top break-words">
             {{ process.tipo_de_contrato  }}
           </td>
 
@@ -179,16 +179,21 @@
                Abrir modal de detalle
                ========================== -->
 
-          <td class="px-3 py-3 text-center align-top">
+          <td class="px-2 py-3 text-center align-top">
             <button type="button" class="rounded bg-blue-600 px-2 py-1 text-white" (click)="openDetail(process)">
               VER
             </button>
           </td>
 
-          <!-- Guardar -->
-          <td class="px-3 py-3 text-center align-top">
-            <button type="button" class="text-amber-500 transition hover:text-amber-600" title="Guardar proceso">
-              <i class="fa-regular fa-star"></i>
+          <!-- Guardar en Seguimiento -->
+          <td class="px-2 py-3 text-center align-top">
+            <button
+              type="button"
+              class="text-amber-500 transition hover:text-amber-600"
+              [title]="esFavorito(process) ? 'Quitar de Seguimiento' : 'Guardar en Seguimiento'"
+              (click)="alternarFavorito(process)"
+            >
+              <i class="fa-star" [class.fa-solid]="esFavorito(process)" [class.fa-regular]="!esFavorito(process)"></i>
             </button>
           </td>
         </tr>

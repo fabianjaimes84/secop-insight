@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { SMMLV } from '../../../core/constants/app.constants';
 import { Proceso } from '../../../core/models/proceso';
+import { FavoritosService } from '../../../core/services/favoritos.service';
 
 import { Card } from '../../../shared/ui/card/card';
 import { ProcessDetail } from '../detail/process-detail';
@@ -16,6 +17,9 @@ import { ProcessDetail } from '../detail/process-detail';
   styleUrl: './results-table.scss',
 })
 export class ResultsTable implements OnChanges {
+
+  constructor(private favoritosService: FavoritosService) {}
+
   // ==========================================
   // Datos recibidos desde la búsqueda
   // ==========================================
@@ -201,6 +205,17 @@ export class ResultsTable implements OnChanges {
   closeDetail(): void {
     this.detailOpen = false;
     this.selectedProcess = null;
+  }
+
+  // ==========================================
+  // Favoritos / Seguimiento
+  // ==========================================
+  esFavorito(process: Proceso): boolean {
+    return this.favoritosService.esFavorito(process);
+  }
+
+  alternarFavorito(process: Proceso): void {
+    this.favoritosService.alternar(process);
   }
 
   // ==========================================

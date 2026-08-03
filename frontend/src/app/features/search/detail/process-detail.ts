@@ -173,6 +173,45 @@ export class ProcessDetail implements OnChanges {
   // Cronograma SECOP II: evento más cercano a hoy
   // ==========================================
 
+  /** Muestra la última actualización (ISO) en formato legible. */
+  formatearUltimaActualizacion(iso: string): string {
+    if (!iso) {
+      return 'Sin registro';
+    }
+    const fecha = new Date(iso);
+    if (isNaN(fecha.getTime())) {
+      return iso;
+    }
+    return fecha.toLocaleString('es-CO', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  }
+
+  /**
+   * Muestra solo fecha y hora del evento, sin el texto técnico
+   * "(UTC-05:00) Bogotá, Lima, Quito)" que trae el dato crudo.
+   */
+  formatearFechaEvento(evento: { fecha: string; zona_horaria: string }): string {
+    const parseada = this.parsearFechaEvento(evento);
+    if (!parseada) {
+      return evento.fecha || 'Sin fecha';
+    }
+
+    return parseada.toLocaleString('es-CO', {
+      day: 'numeric',
+      month: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  }
+
   /**
    * Extrae una fecha real (d/m/yyyy hh:mm:ss AM/PM) de un evento del
    * cronograma. Algunos eventos traen la fecha directa en 'fecha', y otros
@@ -294,7 +333,6 @@ export class ProcessDetail implements OnChanges {
     'respuesta',
     'observaciones',
     'adenda',
-    'presupuesto', 
   ];
 
   /** Quita tildes y pasa a minúsculas, para comparar sin importar acentos. */

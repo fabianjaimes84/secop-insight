@@ -17,7 +17,7 @@
 >
   <!-- Logo -->
   <div class="flex justify-center pt-6 pb-2">
-    <img alt="SECOP II | Insight" class="w-32 h-auto" src="logo-si.png" />
+    <img alt="SECOP II | Insight" class="w-56 h-auto" src="logo-si.png" />
   </div>
 
   <!-- Header -->
@@ -40,7 +40,7 @@
           [routerLinkActiveOptions]="{ exact: true }"
           class="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset hover:bg-slate-800 text-slate-300"
         >
-          <span class="w-5 h-5 flex-shrink-0" [innerHTML]="item.icon"></span>
+          <span class="w-5 flex items-center justify-center text-base flex-shrink-0" [innerHTML]="item.icon"></span>
           <span class="font-medium text-sm">{{ item.label }}</span>
           
           <!-- Indicador activo (visible solo cuando routerLinkActive aplica las clases) -->
@@ -56,9 +56,7 @@
       routerLink="/ayuda"
       class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-200 text-slate-300 hover:bg-blue-800 hover:text-white group"
     >
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
+      <i class="fa-solid fa-circle-question w-5 text-center text-base flex-shrink-0"></i>
       <span class="font-medium text-sm">Centro de ayuda</span>
     </a>
   </div>

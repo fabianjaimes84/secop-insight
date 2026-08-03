@@ -168,8 +168,7 @@
                           </span>
                         }
                       </div>
-                      <p class="text-xs text-slate-500 mt-1">{{ evento.fecha }}</p>
-                      <p class="text-xs text-slate-400">{{ evento.zona_horaria }}</p>
+                      <p class="text-xs text-slate-500 mt-1">{{ formatearFechaEvento(evento) }}</p>
                     </div>
                   </div>
                 }
@@ -352,6 +351,11 @@
           } @else if (datosHtmlDescarga) {
             <span class="text-xs text-green-600">
               <i class="fa-solid fa-circle-check mr-1"></i> Información adicional cargada
+              @if (datosHtmlDescarga.ultima_actualizacion) {
+                <span class="ml-2 text-slate-400">
+                  · Descargado: {{ formatearUltimaActualizacion(datosHtmlDescarga.ultima_actualizacion) }}
+                </span>
+              }
             </span>
           }
         </div>

@@ -52,6 +52,9 @@ class ProcesoHtmlDescarga(Base):
     precio_base = Column(Float, nullable=True)
     valor_adjudicado = Column(Float, nullable=True)
 
+    # Fecha/hora (ISO) de la última vez que se importó el HTML de este proceso.
+    ultima_actualizacion = Column(String, default="")
+
     cronograma = relationship(
         "CronogramaHtmlDescarga", back_populates="proceso", cascade="all, delete-orphan"
     )

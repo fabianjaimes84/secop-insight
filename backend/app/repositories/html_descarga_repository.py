@@ -36,8 +36,10 @@ class HtmlDescargaRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def guardar_proceso(self, datos: ProcesoHtmlDescargaExtraido) -> ProcesoHtmlDescarga:
-        proceso = self._guardar_info_general(datos.info_general)
+    def guardar_proceso(
+        self, datos: ProcesoHtmlDescargaExtraido, fecha_descarga: str = ""
+    ) -> ProcesoHtmlDescarga:
+        proceso = self._guardar_info_general(datos.info_general, fecha_descarga)
         self._guardar_cronograma(proceso, datos.cronograma)
         self._guardar_documentos(proceso, datos.documentos)
         self._guardar_proponentes(proceso, datos.proponentes)
@@ -48,7 +50,9 @@ class HtmlDescargaRepository:
         self.db.refresh(proceso)
         return proceso
 
-    def _guardar_info_general(self, info: InfoGeneralHtmlDescarga) -> ProcesoHtmlDescarga:
+    def _guardar_info_general(
+        self, info: InfoGeneralHtmlDescarga, fecha_descarga: str = ""
+    ) -> ProcesoHtmlDescarga:
         proceso = (
             self.db.query(ProcesoHtmlDescarga)
             .filter_by(numero_proceso=info.numero_proceso)
@@ -78,6 +82,10 @@ class HtmlDescargaRepository:
         proceso.fase = info.fase
         proceso.fase_previa = info.fase_previa
         proceso.precio_base = _parsear_precio(info.precio_estimado_total)
+        # Fecha real de descarga del HTML desde SECOP II (no el momento en
+        # que se importó a la base de datos).
+        if fecha_descarga:
+            proceso.ultima_actualizacion = fecha_descarga
 
         self.db.flush()  # asegura que proceso.id ya exista para lo que sigue
         return proceso

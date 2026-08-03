@@ -12,6 +12,19 @@ class ProcesoHtmlDescargaResumen(BaseModel):
     entidad: str
     estado: str
     fase: str
+    ultima_actualizacion: str = ""
+    # Campos calculados aparte, no son columnas directas de la tabla.
+    fecha_presentacion_ofertas: str = ""
+    zona_presentacion_ofertas: str = ""
+    fecha_adenda: str = ""
+    zona_adenda: str = ""
+    proximo_evento_nombre: str = ""
+    proximo_evento_fecha: str = ""
+    proximo_evento_zona: str = ""
+    # Evento del cronograma inmediatamente anterior al próximo pendiente.
+    evento_anterior_nombre: str = ""
+    evento_anterior_fecha: str = ""
+    evento_anterior_zona: str = ""
 
 
 class EventoCronogramaRespuesta(BaseModel):
@@ -88,6 +101,8 @@ class ProcesoHtmlDescargaDetalle(BaseModel):
 
     precio_base: float | None
     valor_adjudicado: float | None
+
+    ultima_actualizacion: str = ""
 
     cronograma: list[EventoCronogramaRespuesta]
     documentos: list[DocumentoRespuesta]

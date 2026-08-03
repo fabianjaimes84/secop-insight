@@ -41,6 +41,29 @@ async def listar_catalogos():
         raise HTTPException(status_code=500, detail="Error cargando catálogos")
 
 
+@router.get("/catalogo/{campo}")
+async def obtener_catalogo_campo(campo: str):
+    """
+    Obtiene los valores únicos de un campo específico permitido
+    (ej. /procesos/catalogo/estado_resumen), consultando en vivo la API
+    de SECOP II. Útil para explorar qué valores reales trae un campo
+    antes de construir lógica basada en él.
+    """
+    try:
+        valores = await service.obtener_catalogo(campo)
+        if not valores:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Campo '{campo}' no permitido o sin valores disponibles.",
+            )
+        return {"campo": campo, "valores": valores}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error obteniendo catálogo '{campo}': {e}")
+        raise HTTPException(status_code=500, detail="Error cargando catálogo")
+
+
 @router.post("/busqueda", response_model=List[Proceso])
 async def buscar_procesos(filtros: BusquedaProceso):
     """Realiza una búsqueda avanzada con filtros complejos."""
