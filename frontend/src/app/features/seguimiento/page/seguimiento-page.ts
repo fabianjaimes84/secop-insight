@@ -5,6 +5,7 @@ import { combineLatest, map, Observable, startWith, switchMap } from 'rxjs';
 import { Proceso } from '../../../core/models/proceso';
 import { FavoritosService, FavoritoGuardado } from '../../../core/services/favoritos.service';
 import { HtmlDescargaService } from '../../search/services/html-descarga.service';
+import { ExtensionService, ProgresoCola } from '../../../core/services/extension.service';
 import { ProcessDetail } from '../../search/detail/process-detail';
 
 /** Un favorito con el dato de última descarga traído del backend. */
@@ -35,12 +36,59 @@ export class SeguimientoPage implements OnInit {
   selectedProcess: Proceso | null = null;
   detailOpen = false;
 
+  extensionDisponible = false;
+  avisoExtension: string | null = null;
+  progreso: ProgresoCola = { restantes: 0, total: 0 };
+
   constructor(
     private favoritosService: FavoritosService,
-    private htmlDescargaService: HtmlDescargaService
+    private htmlDescargaService: HtmlDescargaService,
+    private extensionService: ExtensionService
   ) {}
 
+  /**
+   * Abre en SECOP, uno por uno, los procesos con oferta enviada, para
+   * que la extensión los recapture. Solo hay que pasar el reCAPTCHA de
+   * cada uno: la pestaña se cierra sola y la siguiente se abre enseguida.
+   */
+  actualizarOfertasEnviadas(enviadas: FavoritoConEstado[]): void {
+    this.avisoExtension = null;
+
+    const urls = enviadas
+      .map((item) => item.favorito.proceso.urlproceso)
+      .filter((url): url is string => !!url);
+
+    if (!urls.length) {
+      this.avisoExtension =
+        'Los procesos guardados no tienen enlace a SECOP. Vuelve a buscarlos y guardarlos desde el buscador.';
+      return;
+    }
+
+    this.extensionService.actualizarEnLote(urls);
+
+    // Si la extensión no responde en unos segundos, es que no está
+    // instalada o no se recargó tras actualizarla.
+    setTimeout(() => {
+      if (this.progreso.total === 0) {
+        this.avisoExtension =
+          'La extensión no respondió. Ve a chrome://extensions, quítala y vuelve a cargarla con "Cargar descomprimida".';
+      }
+    }, 3000);
+  }
+
+  cancelarActualizacion(): void {
+    this.extensionService.cancelarCola();
+    this.avisoExtension = null;
+  }
+
   ngOnInit(): void {
+    this.extensionService.extensionDisponible$.subscribe(
+      (disponible) => (this.extensionDisponible = disponible)
+    );
+    this.extensionService.progreso$.subscribe(
+      (progreso) => (this.progreso = progreso)
+    );
+
     this.grupos$ = combineLatest([
       this.favoritosService.favoritos$,
       // Se vuelve a consultar cada vez que la extensión captura un proceso,

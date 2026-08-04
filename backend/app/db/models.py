@@ -157,6 +157,169 @@ class ObservacionHtmlDescarga(Base):
     proceso = relationship("ProcesoHtmlDescarga", back_populates="observaciones")
 
 
+class Contador(Base):
+    """
+    Catálogo de contadores/revisores fiscales, reutilizables entre empresas.
+    Una misma persona puede ser el contador de varias empresas distintas.
+    """
+
+    __tablename__ = "contadores"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    nombre = Column(String, default="")
+    cedula = Column(String, default="")
+    mat_profe = Column(String, default="")
+    # 'contador' o 'revisor_fiscal'
+    rol = Column(String, default="contador")
+
+    empresas = relationship("Empresa", back_populates="contador")
+
+
+class Empresa(Base):
+    """
+    Catálogo de empresas y personas naturales con las que se concursa.
+    Se registran una sola vez y se reutilizan en cada oferta.
+    """
+
+    __tablename__ = "empresas"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    nom_o_raz_social = Column(String, unique=True, index=True)
+    nit = Column(String, default="")
+    es_persona_juridica = Column(Boolean, default=False)
+
+    # Representante legal. En una persona natural, se representa a sí misma.
+    repre_nombre = Column(String, default="")
+    repre_cedula = Column(String, default="")
+    repre_mat_profe = Column(String, default="")
+
+    # Datos de contacto, que se usan cuando esta empresa es la líder.
+    contac_direccion = Column(String, default="")
+    contac_ciudad = Column(String, default="")
+    contac_email = Column(String, default="")
+    contac_tele = Column(String, default="")
+    contac_telefax = Column(String, default="")
+
+    # Contador o revisor fiscal, elegido del catálogo (opcional).
+    contador_id = Column(Integer, ForeignKey("contadores.id"), nullable=True)
+
+    accionistas = relationship(
+        "AccionistaEmpresa",
+        back_populates="empresa",
+        cascade="all, delete-orphan",
+        order_by="AccionistaEmpresa.orden",
+    )
+
+    contador = relationship("Contador", back_populates="empresas")
+
+    participaciones = relationship(
+        "IntegranteProponente", back_populates="empresa"
+    )
+
+
+class AccionistaEmpresa(Base):
+    """
+    Socio o accionista de una empresa, con su porcentaje de participación.
+    Se usa en los formatos de factores de desempate.
+    """
+
+    __tablename__ = "accionistas_empresa"
+
+    id = Column(Integer, primary_key=True, index=True)
+    empresa_id = Column(Integer, ForeignKey("empresas.id"), nullable=False)
+
+    orden = Column(Integer, default=1)
+    nombre = Column(String, default="")
+    cedula = Column(String, default="")
+    porcentaje = Column(String, default="")
+
+    empresa = relationship("Empresa", back_populates="accionistas")
+
+
+class ProponentePerfil(Base):
+    """
+    Un proponente para una oferta: puede ser una sola empresa (persona
+    natural o jurídica) o la unión de varias en consorcio o unión temporal.
+    """
+
+    __tablename__ = "proponentes_perfil"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    # 'natural', 'consorcio' o 'union_temporal'
+    tipo = Column(String, default="natural")
+    # Nombre único de la oferta: "UNION TEMPORAL VIALTEK 16"
+    nombre = Column(String, unique=True, index=True)
+
+    # Proceso al que se presenta. Un proceso tiene un solo proponente.
+    codigo_proceso = Column(String, default="", index=True)
+
+    # Quién firma los formatos. Siempre es el representante legal de una
+    # de las empresas que conforman el proponente.
+    representante_empresa_id = Column(
+        Integer, ForeignKey("empresas.id"), nullable=True
+    )
+
+    # Datos de la entidad contratante para el Formato 11 (no siempre
+    # vienen completos en lo que trae SECOP).
+    entidad_telefono = Column(String, default="")
+    entidad_pagina = Column(String, default="")
+    entidad_horario = Column(String, default="")
+    entidad_correo = Column(String, default="")
+
+    # Fechas clave de esta oferta. El cierre se trae del cronograma del
+    # proceso; la carta de gerencia se calcula un día antes del cierre.
+    fecha_cierre = Column(String, default="")
+    fecha_carta_gerencia = Column(String, default="")
+
+    # Personal clave evaluable (texto libre, se repite entre ofertas)
+    pers_clave_eval = Column(String, default="")
+
+    representante_empresa = relationship("Empresa", foreign_keys=[representante_empresa_id])
+
+    integrantes = relationship(
+        "IntegranteProponente",
+        back_populates="perfil",
+        cascade="all, delete-orphan",
+        order_by="IntegranteProponente.orden",
+    )
+
+
+class IntegranteProponente(Base):
+    """
+    La participación de una empresa dentro de un proponente concreto.
+    Solo guarda lo que cambia entre ofertas: el porcentaje y si lidera.
+    Los demás datos vienen de la empresa referenciada.
+    """
+
+    __tablename__ = "integrantes_proponente"
+
+    id = Column(Integer, primary_key=True, index=True)
+    perfil_id = Column(Integer, ForeignKey("proponentes_perfil.id"), nullable=False)
+    empresa_id = Column(Integer, ForeignKey("empresas.id"), nullable=False)
+
+    orden = Column(Integer, default=1)
+    compromiso = Column(String, default="")  # porcentaje de participación
+    es_lider = Column(Boolean, default=False)
+
+    # Estas marcas dependen de la empresa Y de la oferta concreta, así
+    # que se preguntan aquí (por integrante), no en el catálogo de empresas.
+    pertenece_grupo = Column(Boolean, default=False)
+    cotiza_bolsa = Column(Boolean, default=False)
+
+    # Criterios que este integrante acredita PARA ESTA oferta.
+    acredita_mujeres = Column(Boolean, default=False)       # Formato 13
+    acredita_discapacidad = Column(Boolean, default=False)  # Formato 6
+    acredita_mipyme = Column(Boolean, default=False)
+
+    perfil = relationship("ProponentePerfil", back_populates="integrantes")
+    empresa = relationship(
+        "Empresa", back_populates="participaciones", foreign_keys=[empresa_id]
+    )
+
+
 class RequisitoHtmlDescarga(Base):
     """Checklist de requisitos/documentos exigidos en el pliego (uso futuro: formatos)."""
 

@@ -5,6 +5,10 @@ import os
 
 from app.api.routes.secop_routes import router as secop_router
 from app.api.routes.html_descarga_routes import router as html_descarga_router
+from app.api.routes.contador_routes import router as contador_router
+from app.api.routes.empresa_routes import router as empresa_router
+from app.api.routes.proponente_routes import router as proponente_router
+from app.api.routes.documentos_routes import router as documentos_router
 from app.core.logger import logger
 from app.db.base import engine, Base
 from app.db import models as db_models  # noqa: F401 (registra las tablas en Base)
@@ -50,3 +54,7 @@ def inicio():
 
 app.include_router(secop_router)
 app.include_router(html_descarga_router)
+app.include_router(contador_router)
+app.include_router(empresa_router)
+app.include_router(proponente_router)
+app.include_router(documentos_router)

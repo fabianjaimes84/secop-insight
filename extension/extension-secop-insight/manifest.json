@@ -3,28 +3,46 @@
   "name": "SECOP II Insight - Captura automática",
   "version": "1.0.0",
   "description": "Envía automáticamente los procesos de SECOP a tu aplicación local, sin descargar archivos.",
-
-  "permissions": ["storage", "tabs"],
-
+  "permissions": [
+    "storage",
+    "tabs"
+  ],
   "background": {
     "service_worker": "fondo.js"
   },
-
   "host_permissions": [
     "https://community.secop.gov.co/*",
     "http://localhost:8000/*"
   ],
-
   "content_scripts": [
     {
-      "matches": ["https://community.secop.gov.co/Public/Tendering/*"],
-      "js": ["capturar.js"],
+      "matches": [
+        "https://community.secop.gov.co/Public/Tendering/*"
+      ],
+      "js": [
+        "capturar.js"
+      ],
       "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "http://localhost:4200/*",
+        "http://127.0.0.1:4200/*"
+      ],
+      "js": [
+        "puente.js"
+      ],
+      "run_at": "document_start"
     }
   ],
-
   "action": {
     "default_title": "SECOP II Insight",
     "default_popup": "popup.html"
+  },
+  "externally_connectable": {
+    "matches": [
+      "http://localhost:4200/*",
+      "http://127.0.0.1:4200/*"
+    ]
   }
 }

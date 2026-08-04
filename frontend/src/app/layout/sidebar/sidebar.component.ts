@@ -45,6 +45,12 @@ export class SidebarComponent {
       icon: '<i class="fa-solid fa-bookmark"></i>',
     },
     {
+      id: 'documentos',
+      label: 'Documentos',
+      route: '/documentos',
+      icon: '<i class="fa-solid fa-file-signature"></i>',
+    },
+    {
       id: 'ia',
       label: 'IA',
       route: '/ia',
