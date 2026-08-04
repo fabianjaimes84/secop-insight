@@ -22,6 +22,9 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:4200",
+        # Necesario para que la extensión del navegador pueda enviar el HTML
+        # capturado desde la página del proceso.
+        "https://community.secop.gov.co",
     ],
     allow_credentials=True,
     allow_methods=["*"],

@@ -1,6 +1,6 @@
 import { Component, ElementRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { combineLatest, map, Observable, startWith } from 'rxjs';
+import { combineLatest, map, Observable, startWith, switchMap } from 'rxjs';
 
 import { Proceso } from '../../../core/models/proceso';
 import { FavoritosService, FavoritoGuardado } from '../../../core/services/favoritos.service';
@@ -164,6 +164,14 @@ export class Dashboard implements OnInit {
     this.selectedProcess = null;
   }
 
+  /**
+   * Quita la fase que SECOP añade al final del número de proceso.
+   * Ej: "CMA-DEO-SGI-028-2026 (Presentación de oferta)" -> "CMA-DEO-SGI-028-2026"
+   */
+  numeroProcesoLimpio(referencia: string): string {
+    return (referencia || '').trim().split(' ')[0];
+  }
+
   /** Muestra la última actualización en formato legible. */
   formatearUltimaActualizacion(iso: string): string {
     if (!iso) {
@@ -191,11 +199,14 @@ export class Dashboard implements OnInit {
 
   ngOnInit(): void {
     // Se combinan los favoritos (localStorage) con la lista de procesos ya
-    // importados (backend), para saber la fecha real de "Presentación de
-    // Ofertas" de cada uno.
+    // importados (backend). La lista del backend se vuelve a pedir cada vez
+    // que la extensión captura un proceso, así el tablero se actualiza solo.
     this.estadisticas$ = combineLatest([
       this.favoritosService.favoritos$,
-      this.htmlDescargaService.listarProcesos().pipe(startWith<any[]>([])),
+      this.htmlDescargaService.capturaDetectada$.pipe(
+        switchMap(() => this.htmlDescargaService.listarProcesos()),
+        startWith<any[]>([])
+      ),
     ]).pipe(
       map(([favoritos, procesosImportados]) =>
         this.calcularEstadisticas(favoritos, procesosImportados)

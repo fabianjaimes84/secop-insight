@@ -9,7 +9,7 @@
       <header class="flex items-center justify-between border-b border-slate-200 px-6 py-4 bg-slate-50">
         <div>
           <h2 class="text-xl font-bold text-slate-800">Detalle del proceso</h2>
-          <p class="mt-1 text-sm font-medium text-blue-600">{{ process.referencia_del_proceso }}</p>
+          <p class="mt-1 text-sm font-medium text-blue-600">{{ numeroProcesoLimpio(process.referencia_del_proceso) }}</p>
           <p class="text-xs text-slate-500">{{ process.descripci_n_del_procedimiento  }}</p>
         </div>
         <button type="button" class="flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-200 hover:text-red-600" title="Cerrar" (click)="closeModal()">
@@ -45,7 +45,17 @@
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            <span class="font-medium">Cargando información adicional...</span>
+            <span class="font-medium">Consultando información guardada...</span>
+          </div>
+        }
+
+        @if (datosDesactualizados) {
+          <div class="mb-4 flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            <i class="fa-solid fa-clock-rotate-left text-amber-500"></i>
+            <span>
+              Esta información tiene {{ horasDesdeActualizacion }} horas.
+              Ábrelo de nuevo en SECOP con la extensión activa para actualizarla.
+            </span>
           </div>
         }
         
@@ -132,7 +142,7 @@
             @if (!datosHtmlDescarga) {
               <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-center">
                 <p class="text-sm text-slate-500">
-                  Buscando información adicional de este proceso (o aún no se ha importado su HTML — revisa el mensaje al pie del modal).
+                  Este proceso aún no se ha capturado desde SECOP. Ábrelo en SECOP con la extensión activa para ver su información ampliada.
                 </p>
               </div>
             }
@@ -199,7 +209,7 @@
                 }
               </div>
               <p class="mt-6 text-xs text-slate-400 italic">
-                Cronograma resumido de SECOP II. Se está buscando el cronograma completo (o aún no se ha importado el HTML de este proceso).
+                Cronograma resumido de la búsqueda. Para ver el cronograma completo, abre este proceso en SECOP con la extensión activa.
               </p>
             }
           </div>
@@ -291,7 +301,7 @@
                   </tbody>
                 </table>
                 <p class="px-6 py-4 text-xs text-slate-400 italic">
-                  Se está buscando el listado completo de documentos (o aún no se ha importado el HTML de este proceso).
+                  Para ver el listado completo de documentos, abre este proceso en SECOP con la extensión activa.
                 </p>
               }
             </div>
@@ -327,7 +337,7 @@
               <div class="flex flex-col items-center justify-center py-12 text-center">
                 <i class="fa-regular fa-comment-dots text-4xl text-slate-300 mb-3"></i>
                 <p class="text-slate-600 font-medium">No hay observaciones o mensajes registrados</p>
-                <p class="text-sm text-slate-400 mt-1">Se están buscando (o aún no se ha importado el HTML de este proceso).</p>
+                <p class="text-sm text-slate-400 mt-1">Abre este proceso en SECOP con la extensión activa para verlas.</p>
               </div>
             }
           </div>
@@ -340,11 +350,11 @@
         <div class="flex items-center gap-2">
           @if (cargandoHtmlDescarga) {
             <span class="text-xs text-slate-400">
-              <i class="fa-solid fa-spinner fa-spin mr-1"></i> Buscando información adicional...
+              <i class="fa-solid fa-spinner fa-spin mr-1"></i> Consultando información guardada...
             </span>
           } @else if (carpetaNoEncontrada) {
             <span class="text-xs text-slate-400">
-              <i class="fa-regular fa-folder-open mr-1"></i> Aún no se ha importado el HTML de este proceso.
+              <i class="fa-regular fa-circle-question mr-1"></i> Sin información ampliada. Ábrelo en SECOP con la extensión activa.
             </span>
           } @else if (errorHtmlDescarga) {
             <span class="text-xs text-red-600 max-w-xs">{{ errorHtmlDescarga }}</span>
@@ -353,7 +363,7 @@
               <i class="fa-solid fa-circle-check mr-1"></i> Información adicional cargada
               @if (datosHtmlDescarga.ultima_actualizacion) {
                 <span class="ml-2 text-slate-400">
-                  · Descargado: {{ formatearUltimaActualizacion(datosHtmlDescarga.ultima_actualizacion) }}
+                  · Actualizado: {{ formatearUltimaActualizacion(datosHtmlDescarga.ultima_actualizacion) }}
                 </span>
               }
             </span>

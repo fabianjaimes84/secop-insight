@@ -18,6 +18,11 @@ router = APIRouter(prefix="/html-descarga", tags=["html-descarga"])
 
 service = HtmlDescargaService()
 
+# Marca de tiempo de la última captura registrada. El frontend la consulta
+# periódicamente para saber si debe refrescar sus datos, sin recargar la
+# página completa.
+ULTIMA_CAPTURA = {"momento": "", "numero_proceso": ""}
+
 EXTENSIONES_PERMITIDAS = (".htm", ".html")
 TAMANO_MAXIMO_MB = 15
 
@@ -192,6 +197,71 @@ def _evento_anterior(cronograma):
     return pasados[0][1]
 
 
+class HtmlCapturado(BaseModel):
+    """HTML de un proceso enviado directamente desde la extensión del navegador."""
+
+    html: str
+    url: str = ""
+
+
+@router.post("/capturar", response_model=RespuestaImportacionHtmlDescarga)
+def capturar_html_navegador(
+    datos: HtmlCapturado,
+    db: Session = Depends(obtener_db),
+):
+    """
+    Recibe el HTML de un proceso capturado por la extensión del navegador,
+    justo después de que el usuario pasó el reCAPTCHA. No se descarga ningún
+    archivo: el HTML viaja directo del navegador al backend.
+    """
+    try:
+        datos_extraidos = service.procesar_html(datos.html)
+
+        if not datos_extraidos.info_general.numero_proceso:
+            raise HTTPException(
+                status_code=422,
+                detail="El HTML recibido no corresponde a un proceso de SECOP.",
+            )
+
+        repositorio = HtmlDescargaRepository(db)
+        proceso_guardado = repositorio.guardar_proceso(
+            datos_extraidos,
+            fecha_descarga=datetime.now().isoformat(timespec="seconds"),
+        )
+
+        logger.info(
+            f"Proceso capturado desde el navegador: {proceso_guardado.numero_proceso}"
+        )
+
+        # Se deja constancia para que la app detecte la novedad y refresque
+        # sus datos sin que el usuario recargue la página.
+        ULTIMA_CAPTURA["momento"] = datetime.now().isoformat(timespec="seconds")
+        ULTIMA_CAPTURA["numero_proceso"] = proceso_guardado.numero_proceso
+
+        return RespuestaImportacionHtmlDescarga(
+            proceso_id=proceso_guardado.id,
+            numero_proceso=proceso_guardado.numero_proceso,
+            mensaje="Proceso capturado y guardado correctamente.",
+            total_eventos_cronograma=len(proceso_guardado.cronograma),
+            total_documentos=len(proceso_guardado.documentos),
+            total_proponentes=len(proceso_guardado.proponentes),
+            total_observaciones=len(proceso_guardado.observaciones),
+            total_requisitos=len(proceso_guardado.requisitos),
+        )
+
+    except HTTPException:
+        raise
+    except HtmlDescargaServiceError as e:
+        logger.error(f"Error de negocio capturando HTML: {e}")
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:
+        db.rollback()
+        logger.exception(f"Error inesperado capturando HTML: {e}")
+        raise HTTPException(
+            status_code=500, detail="Error interno procesando el HTML capturado."
+        )
+
+
 @router.get("/procesos", response_model=list[ProcesoHtmlDescargaResumen])
 def listar_procesos(db: Session = Depends(obtener_db)):
     """Lista resumida de todos los procesos SECOP I guardados, más recientes primero."""
@@ -254,30 +324,77 @@ def obtener_proceso(proceso_id: int, db: Session = Depends(obtener_db)):
     return proceso
 
 
+@router.get("/ultima-captura")
+def obtener_ultima_captura():
+    """
+    Devuelve cuándo se capturó el último proceso. La app consulta este
+    endpoint cada pocos segundos: si el valor cambió, refresca sus datos
+    automáticamente, sin necesidad de recargar la página.
+    """
+    return ULTIMA_CAPTURA
+
+
+@router.get("/proceso-por-codigo/{codigo_proceso}", response_model=ProcesoHtmlDescargaDetalle)
+def obtener_proceso_por_codigo(codigo_proceso: str, db: Session = Depends(obtener_db)):
+    """
+    Devuelve, sin importar ni modificar nada, la información ya guardada de
+    un proceso a partir de su código base (ej. 'CM-GB-010-2026'). Es lo que
+    consulta el modal al abrirse.
+    """
+    proceso = (
+        db.query(ProcesoHtmlDescarga)
+        .filter(ProcesoHtmlDescarga.numero_proceso.like(f"{codigo_proceso}%"))
+        .first()
+    )
+
+    if proceso is None:
+        raise HTTPException(
+            status_code=404,
+            detail=(
+                f"Aún no hay información ampliada de '{codigo_proceso}'. "
+                "Ábrelo en SECOP con la extensión activa para capturarlo."
+            ),
+        )
+
+    return proceso
+
+
 @router.post("/actualizar/{codigo_proceso}", response_model=ProcesoHtmlDescargaDetalle)
 def actualizar_desde_carpeta(codigo_proceso: str, db: Session = Depends(obtener_db)):
     """
     Busca en 'backend/documentos/{codigo_proceso}/' el HTML descargado
-    manualmente de SECOP I, lo procesa y actualiza la base de datos. Devuelve
+    manualmente de SECOP II, lo procesa y actualiza la base de datos. Devuelve
     el detalle completo ya actualizado, listo para mostrar en el modal.
+
+    Si no hay carpeta (por ejemplo, porque el proceso llegó a través de la
+    extensión del navegador y nunca se descargó un archivo), se devuelve la
+    información que ya está guardada en la base de datos.
     """
     carpeta = DESCARGAS_DIR / codigo_proceso
+    archivos_html = []
 
-    if not carpeta.is_dir():
-        raise HTTPException(
-            status_code=404,
-            detail=(
-                f"No existe la carpeta 'documentos/{codigo_proceso}'. "
-                "Créala y guarda ahí el HTML descargado de SECOP I."
-            ),
+    if carpeta.is_dir():
+        archivos_html = list(carpeta.glob("*.htm")) + list(carpeta.glob("*.html"))
+
+    if not archivos_html:
+        guardado = (
+            db.query(ProcesoHtmlDescarga)
+            .filter(ProcesoHtmlDescarga.numero_proceso.like(f"{codigo_proceso}%"))
+            .first()
         )
 
-    archivos_html = list(carpeta.glob("*.htm")) + list(carpeta.glob("*.html"))
-    if not archivos_html:
+        if guardado:
+            logger.info(
+                f"Sin archivo local para '{codigo_proceso}'. "
+                "Se devuelve la información ya guardada en la base de datos."
+            )
+            return guardado
+
         raise HTTPException(
             status_code=404,
             detail=(
-                f"No se encontró ningún archivo .htm/.html dentro de "
+                f"No hay información de '{codigo_proceso}'. Ábrelo en SECOP con "
+                "la extensión activa, o guarda su HTML en "
                 f"'documentos/{codigo_proceso}'."
             ),
         )

@@ -1,6 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of, timer } from 'rxjs';
+import {
+  catchError,
+  distinctUntilChanged,
+  map,
+  shareReplay,
+  switchMap,
+} from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
@@ -11,7 +18,26 @@ export class HtmlDescargaService {
   private readonly API_URL = 'http://localhost:8000';
   private readonly BASE = `${this.API_URL}/html-descarga`;
 
+  /** Cada cuántos milisegundos se pregunta al backend si hubo capturas. */
+  private readonly INTERVALO_SONDEO = 4000;
+
   constructor(private http: HttpClient) {}
+
+  /**
+   * Emite cada vez que la extensión captura un proceso nuevo. Los
+   * componentes se suscriben para refrescar sus datos automáticamente,
+   * sin que el usuario recargue la página.
+   */
+  readonly capturaDetectada$: Observable<string> = timer(0, this.INTERVALO_SONDEO).pipe(
+    switchMap(() =>
+      this.http
+        .get<{ momento: string; numero_proceso: string }>(`${this.BASE}/ultima-captura`)
+        .pipe(catchError(() => of({ momento: '', numero_proceso: '' })))
+    ),
+    map((estado) => estado.momento),
+    distinctUntilChanged(),
+    shareReplay(1)
+  );
 
   /**
    * Busca en 'backend/documentos/{codigoProceso}/' el HTML descargado
@@ -22,6 +48,16 @@ export class HtmlDescargaService {
     return this.http.post(
       `${this.BASE}/actualizar/${encodeURIComponent(codigoProceso)}`,
       {}
+    );
+  }
+
+  /**
+   * Consulta (sin importar ni modificar nada) la información ya guardada
+   * de un proceso, a partir de su código base. Es lo que usa el modal.
+   */
+  obtenerPorCodigo(codigoProceso: string): Observable<any> {
+    return this.http.get(
+      `${this.BASE}/proceso-por-codigo/${encodeURIComponent(codigoProceso)}`
     );
   }
 

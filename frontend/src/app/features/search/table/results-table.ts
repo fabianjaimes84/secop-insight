@@ -210,6 +210,15 @@ export class ResultsTable implements OnChanges {
   // ==========================================
   // Favoritos / Seguimiento
   // ==========================================
+
+  /**
+   * Quita la fase que SECOP añade al final del número de proceso.
+   * Ej: "CMA-DEO-SGI-028-2026 (Presentación de oferta)" -> "CMA-DEO-SGI-028-2026"
+   */
+  numeroProcesoLimpio(referencia: string): string {
+    return (referencia || '').trim().split(' ')[0];
+  }
+
   esFavorito(process: Proceso): boolean {
     return this.favoritosService.esFavorito(process);
   }

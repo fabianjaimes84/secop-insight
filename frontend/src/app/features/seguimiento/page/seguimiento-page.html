@@ -44,13 +44,35 @@
             @for (item of grupos.noEnviadas; track item.favorito.proceso.id_del_proceso; let i = $index) {
               <div class="relative flex flex-col rounded-xl border border-slate-200 border-l-4 border-l-orange-400 bg-white p-4 shadow-sm transition hover:shadow-md">
 
-                <!-- Numeración -->
-                <div class="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-orange-100">
+                <!-- Numeración (izquierda) -->
+                <div class="absolute left-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-orange-100">
                   <span class="text-base font-bold text-orange-700">{{ i + 1 }}</span>
                 </div>
 
-                <div class="mb-2 pr-12">
-                  <p class="text-xs font-bold text-slate-800">{{ item.favorito.proceso.referencia_del_proceso }}</p>
+                <!-- Fecha límite de presentación (derecha) -->
+                @if (item.fechaPresentacion || item.zonaPresentacion) {
+                  <div class="absolute right-3 top-3 rounded-lg border px-2 py-1 text-center"
+                    [class.border-red-300]="(diasRestantes(item.fechaPresentacion, item.zonaPresentacion) ?? 99) <= 2"
+                    [class.bg-red-50]="(diasRestantes(item.fechaPresentacion, item.zonaPresentacion) ?? 99) <= 2"
+                    [class.border-orange-300]="(diasRestantes(item.fechaPresentacion, item.zonaPresentacion) ?? 99) > 2"
+                    [class.bg-orange-50]="(diasRestantes(item.fechaPresentacion, item.zonaPresentacion) ?? 99) > 2">
+                    <p class="text-[9px] uppercase tracking-wide text-slate-400">Cierra</p>
+                    <p class="text-lg font-bold leading-none"
+                      [class.text-red-700]="(diasRestantes(item.fechaPresentacion, item.zonaPresentacion) ?? 99) <= 2"
+                      [class.text-orange-700]="(diasRestantes(item.fechaPresentacion, item.zonaPresentacion) ?? 99) > 2">
+                      {{ diaPresentacion(item.fechaPresentacion, item.zonaPresentacion) }}
+                    </p>
+                    <p class="text-[10px] leading-tight text-slate-500">
+                      {{ mesPresentacion(item.fechaPresentacion, item.zonaPresentacion) }}
+                    </p>
+                    <p class="text-[10px] font-medium leading-tight text-slate-600">
+                      {{ horaPresentacion(item.fechaPresentacion, item.zonaPresentacion) }}
+                    </p>
+                  </div>
+                }
+
+                <div class="mb-2 pl-12 pr-20">
+                  <p class="text-xs font-bold text-slate-800">{{ numeroProcesoLimpio(item.favorito.proceso.referencia_del_proceso) }}</p>
                   <span class="mt-1 inline-flex rounded px-2 py-0.5 text-[10px] leading-4" [class]="getEstadoClass(item.favorito.proceso.estado_resumen)">
                     {{ item.favorito.proceso.estado_resumen }}
                   </span>
@@ -72,9 +94,9 @@
                   [class.text-slate-400]="item.ultimaActualizacion"
                   [class.text-red-500]="!item.ultimaActualizacion">
                   <i class="fa-solid mr-1"
-                    [class.fa-download]="item.ultimaActualizacion"
+                    [class.fa-rotate]="item.ultimaActualizacion"
                     [class.fa-triangle-exclamation]="!item.ultimaActualizacion"></i>
-                  {{ item.ultimaActualizacion ? 'Descargado: ' + formatearUltimaActualizacion(item.ultimaActualizacion) : 'Sin actualizar' }}
+                  {{ item.ultimaActualizacion ? 'Actualizado: ' + formatearUltimaActualizacion(item.ultimaActualizacion) : 'Sin actualizar' }}
                 </p>
 
                 <div class="flex items-center justify-between border-t border-slate-100 pt-3">
@@ -135,7 +157,7 @@
                 </div>
 
                 <div class="mb-2 pr-12">
-                  <p class="text-xs font-bold text-slate-800">{{ item.favorito.proceso.referencia_del_proceso }}</p>
+                  <p class="text-xs font-bold text-slate-800">{{ numeroProcesoLimpio(item.favorito.proceso.referencia_del_proceso) }}</p>
                   <span class="mt-1 inline-flex rounded px-2 py-0.5 text-[10px] leading-4" [class]="getEstadoClass(item.favorito.proceso.estado_resumen)">
                     {{ item.favorito.proceso.estado_resumen }}
                   </span>
@@ -157,9 +179,9 @@
                   [class.text-slate-400]="item.ultimaActualizacion"
                   [class.text-red-500]="!item.ultimaActualizacion">
                   <i class="fa-solid mr-1"
-                    [class.fa-download]="item.ultimaActualizacion"
+                    [class.fa-rotate]="item.ultimaActualizacion"
                     [class.fa-triangle-exclamation]="!item.ultimaActualizacion"></i>
-                  {{ item.ultimaActualizacion ? 'Descargado: ' + formatearUltimaActualizacion(item.ultimaActualizacion) : 'Sin actualizar' }}
+                  {{ item.ultimaActualizacion ? 'Actualizado: ' + formatearUltimaActualizacion(item.ultimaActualizacion) : 'Sin actualizar' }}
                 </p>
 
                 <div class="flex items-center justify-between border-t border-slate-100 pt-3">

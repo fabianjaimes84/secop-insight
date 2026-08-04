@@ -5,10 +5,13 @@ import {
   HostListener,
   Input,
   OnChanges,
+  OnDestroy,
+  OnInit,
   Output,
   SimpleChanges,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Subscription } from 'rxjs';
 
 import { Proceso } from '../../../core/models/proceso';
 import { HtmlDescargaService } from '../services/html-descarga.service';
@@ -26,12 +29,29 @@ type DetailTab =
   templateUrl: './process-detail.html',
   styleUrl: './process-detail.scss',
 })
-export class ProcessDetail implements OnChanges {
+export class ProcessDetail implements OnChanges, OnInit, OnDestroy {
+
+  private suscripcionCaptura?: Subscription;
 
   constructor(
     private htmlDescargaService: HtmlDescargaService,
     private elementRef: ElementRef
   ) {}
+
+  ngOnInit(): void {
+    // Si la extensión captura un proceso mientras el modal está abierto,
+    // se recargan sus datos automáticamente.
+    this.suscripcionCaptura = this.htmlDescargaService.capturaDetectada$
+      .subscribe(() => {
+        if (this.open && this.process) {
+          this.consultarDatosGuardados();
+        }
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.suscripcionCaptura?.unsubscribe();
+  }
 
   // ==========================================
   // Inputs / Outputs
@@ -58,7 +78,7 @@ export class ProcessDetail implements OnChanges {
   errorHtmlDescarga: string | null = null;
   carpetaNoEncontrada = false;
 
-  readonly tabs = [
+  private readonly todasLasTabs = [
     {
       id: 'informacion' as const,
       label: 'Información',
@@ -81,6 +101,18 @@ export class ProcessDetail implements OnChanges {
     },
   ];
 
+  /**
+   * Mientras el proceso no se haya capturado desde SECOP, las pestañas de
+   * Cronograma, Documentos y Observaciones no tienen contenido real, así
+   * que solo se muestra Información. Las cuatro aparecen en cuanto llegan
+   * los datos ampliados.
+   */
+  get tabs() {
+    return this.datosHtmlDescarga
+      ? this.todasLasTabs
+      : this.todasLasTabs.filter((tab) => tab.id === 'informacion');
+  }
+
   // ==========================================
   // Ciclo de vida
   // ==========================================
@@ -95,7 +127,7 @@ export class ProcessDetail implements OnChanges {
       this.datosHtmlDescarga = null;
       this.errorHtmlDescarga = null;
       this.carpetaNoEncontrada = false;
-      this.actualizarDesdeSecopII();
+      this.consultarDatosGuardados();
     }
 
   }
@@ -104,7 +136,12 @@ export class ProcessDetail implements OnChanges {
   // SECOP II (html-descarga)
   // ==========================================
 
-  actualizarDesdeSecopII(): void {
+  /**
+   * Al abrir el modal solo se consulta lo que ya está guardado en la base
+   * de datos. No se dispara ninguna importación: los datos ampliados llegan
+   * cuando el proceso se captura desde SECOP con la extensión del navegador.
+   */
+  consultarDatosGuardados(): void {
 
     if (!this.process?.referencia_del_proceso) {
       return;
@@ -119,7 +156,7 @@ export class ProcessDetail implements OnChanges {
     );
 
     this.htmlDescargaService
-      .actualizarDesdeCarpeta(codigo)
+      .obtenerPorCodigo(codigo)
       .subscribe({
         next: (datos) => {
           this.datosHtmlDescarga = datos;
@@ -135,8 +172,8 @@ export class ProcessDetail implements OnChanges {
           this.cargandoHtmlDescarga = false;
 
           if (err?.status === 404) {
-            // La carpeta del proceso todavía no existe: no es un error real,
-            // solo significa que aún no se ha importado nada.
+            // El proceso todavía no se ha capturado desde SECOP: se muestran
+            // únicamente los datos que ya trae la búsqueda (SECOP II).
             this.carpetaNoEncontrada = true;
             return;
           }
@@ -190,6 +227,47 @@ export class ProcessDetail implements OnChanges {
       minute: '2-digit',
       hour12: true,
     });
+  }
+
+  /**
+   * true si la información guardada tiene más de 12 horas. Sirve para
+   * sugerirle al usuario volver a capturar el proceso desde SECOP.
+   */
+  get datosDesactualizados(): boolean {
+    const iso = this.datosHtmlDescarga?.ultima_actualizacion;
+    if (!iso) {
+      return false;
+    }
+
+    const fecha = new Date(iso);
+    if (isNaN(fecha.getTime())) {
+      return false;
+    }
+
+    const horasTranscurridas =
+      (new Date().getTime() - fecha.getTime()) / (1000 * 60 * 60);
+
+    return horasTranscurridas >= 12;
+  }
+
+  /** Cuántas horas (redondeadas) tiene la información guardada. */
+  get horasDesdeActualizacion(): number {
+    const iso = this.datosHtmlDescarga?.ultima_actualizacion;
+    if (!iso) {
+      return 0;
+    }
+    const fecha = new Date(iso);
+    return Math.floor(
+      (new Date().getTime() - fecha.getTime()) / (1000 * 60 * 60)
+    );
+  }
+
+  /**
+   * Quita la fase que SECOP añade al final del número de proceso.
+   * Ej: "CMA-DEO-SGI-028-2026 (Presentación de oferta)" -> "CMA-DEO-SGI-028-2026"
+   */
+  numeroProcesoLimpio(referencia: string): string {
+    return (referencia || '').trim().split(' ')[0];
   }
 
   /**
