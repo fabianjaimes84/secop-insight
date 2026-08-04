@@ -7,6 +7,7 @@ class BusquedaProceso(BaseModel):
 
     estado: str | None = None
     tipo_proceso: str | None = None
+    tipo_contrato: str | None = None
 
     fecha_publicacion_desde: date | None = None
     fecha_publicacion_hasta: date | None = None

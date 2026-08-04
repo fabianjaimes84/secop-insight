@@ -1,14 +1,21 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { map, Observable } from 'rxjs';
+import { combineLatest, map, Observable, startWith } from 'rxjs';
 
 import { Proceso } from '../../../core/models/proceso';
 import { FavoritosService, FavoritoGuardado } from '../../../core/services/favoritos.service';
+import { HtmlDescargaService } from '../../search/services/html-descarga.service';
 import { ProcessDetail } from '../../search/detail/process-detail';
 
+/** Un favorito con el dato de última descarga traído del backend. */
+interface FavoritoConEstado {
+  favorito: FavoritoGuardado;
+  ultimaActualizacion: string;
+}
+
 interface GruposSeguimiento {
-  noEnviadas: FavoritoGuardado[];
-  enviadas: FavoritoGuardado[];
+  noEnviadas: FavoritoConEstado[];
+  enviadas: FavoritoConEstado[];
   total: number;
 }
 
@@ -18,21 +25,70 @@ interface GruposSeguimiento {
   imports: [CommonModule, ProcessDetail],
   templateUrl: './seguimiento-page.html',
 })
-export class SeguimientoPage {
+export class SeguimientoPage implements OnInit {
 
-  readonly grupos$: Observable<GruposSeguimiento>;
+  grupos$!: Observable<GruposSeguimiento>;
 
   selectedProcess: Proceso | null = null;
   detailOpen = false;
 
-  constructor(private favoritosService: FavoritosService) {
-    this.grupos$ = this.favoritosService.favoritos$.pipe(
-      map((favoritos) => ({
-        noEnviadas: favoritos.filter((f) => !f.ofertaEnviada),
-        enviadas: favoritos.filter((f) => f.ofertaEnviada),
-        total: favoritos.length,
-      }))
+  constructor(
+    private favoritosService: FavoritosService,
+    private htmlDescargaService: HtmlDescargaService
+  ) {}
+
+  ngOnInit(): void {
+    this.grupos$ = combineLatest([
+      this.favoritosService.favoritos$,
+      this.htmlDescargaService.listarProcesos().pipe(startWith<any[]>([])),
+    ]).pipe(
+      map(([favoritos, importados]) => {
+        const conEstado: FavoritoConEstado[] = favoritos.map((f) => ({
+          favorito: f,
+          ultimaActualizacion: this.buscarUltimaActualizacion(
+            f.proceso.referencia_del_proceso,
+            importados
+          ),
+        }));
+
+        return {
+          noEnviadas: conEstado.filter((c) => !c.favorito.ofertaEnviada),
+          enviadas: conEstado.filter((c) => c.favorito.ofertaEnviada),
+          total: conEstado.length,
+        };
+      })
     );
+  }
+
+  /** Empareja el favorito con su versión importada, usando el código base. */
+  private buscarUltimaActualizacion(
+    referenciaProceso: string,
+    importados: any[]
+  ): string {
+    const codigo = this.htmlDescargaService.extraerCodigoCarpeta(referenciaProceso);
+    const encontrado = importados.find(
+      (p) => this.htmlDescargaService.extraerCodigoCarpeta(p.numero_proceso) === codigo
+    );
+    return encontrado?.ultima_actualizacion || '';
+  }
+
+  /** Muestra la fecha de descarga del HTML en formato legible. */
+  formatearUltimaActualizacion(iso: string): string {
+    if (!iso) {
+      return 'Sin actualizar';
+    }
+    const fecha = new Date(iso);
+    if (isNaN(fecha.getTime())) {
+      return iso;
+    }
+    return fecha.toLocaleString('es-CO', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
   }
 
   quitar(favorito: FavoritoGuardado, evento: Event): void {

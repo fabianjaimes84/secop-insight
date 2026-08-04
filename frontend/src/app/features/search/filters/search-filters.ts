@@ -104,8 +104,8 @@ export class SearchFilters implements OnInit, AfterViewInit {
 
   private setFechasPorDefecto(): void {
     const today = new Date();
-    const oneMonthAgo = new Date();
-    oneMonthAgo.setMonth(today.getMonth() - 1);
+    const cuatroMesesAtras = new Date();
+    cuatroMesesAtras.setMonth(today.getMonth() - 4);
 
     const formatDate = (date: Date): string => {
       const year = date.getFullYear();
@@ -115,7 +115,7 @@ export class SearchFilters implements OnInit, AfterViewInit {
     };
 
     this.searchForm.patchValue({
-      fecha_publicacion_desde: formatDate(oneMonthAgo),
+      fecha_publicacion_desde: formatDate(cuatroMesesAtras),
       fecha_publicacion_hasta: formatDate(today),
     });
   }

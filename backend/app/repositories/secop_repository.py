@@ -1,5 +1,6 @@
 import httpx
 import json
+import unicodedata
 from typing import List, Dict, Any, Optional
 
 from app.core.config import settings
@@ -144,6 +145,50 @@ class SecopRepository:
         logger.info(f"Catálogo '{campo}' obtenido. {len(datos)} registros.")
         return datos
 
+    # Campos sobre los que se hace la búsqueda por texto libre.
+    # Se usa una condición explícita en lugar de '$q' porque este último
+    # solo consulta los campos que Socrata tiene indexados, y dejaba fuera
+    # coincidencias en descripción, proveedor, categoría, etc.
+    CAMPOS_BUSQUEDA_TEXTO = [
+        "entidad",
+        "referencia_del_proceso",
+        "nombre_del_procedimiento",
+        "descripci_n_del_procedimiento",
+        "id_del_proceso",
+        "nit_entidad",
+        "departamento_entidad",
+        "ciudad_entidad",
+        "modalidad_de_contratacion",
+        "tipo_de_contrato",
+        "estado_resumen",
+        "nombre_del_proveedor",
+        "codigo_principal_de_categoria",
+    ]
+
+    # Caracteres que pueden aparecer acentuados en los datos de SECOP II y
+    # que, por tanto, no son fiables para comparar directamente.
+    VOCALES_VARIABLES = "aeiouáéíóúüuñn"
+
+    def _condicion_busqueda_texto(self, texto: str) -> str:
+        """
+        Construye la condición de búsqueda insensible a tildes.
+
+        Estrategia: se compara el término carácter por carácter usando
+        LIKE con comodín '_' en el lugar de cada vocal acentuable. El
+        comodín '_' coincide con cualquier carácter individual, así que
+        'interventor_a' encuentra tanto 'interventoria' como
+        'interventoría', sin importar la tilde.
+        """
+        patron = "".join(
+            "_" if caracter in self.VOCALES_VARIABLES else caracter
+            for caracter in texto.lower()
+        )
+
+        return "(" + " OR ".join(
+            f"lower({campo}) like '%{patron}%'"
+            for campo in self.CAMPOS_BUSQUEDA_TEXTO
+        ) + ")"
+
     async def _construir_parametros_async(self, filtros: BusquedaProceso):
         params = {
             "$limit": filtros.limit,
@@ -151,16 +196,24 @@ class SecopRepository:
             "$order": "fecha_de_publicacion_del DESC",
         }
 
+        condiciones = []
+
         if filtros.buscar:
-            params["$q"] = sanitize_string(filtros.buscar)
+            texto = sanitize_string(filtros.buscar).lower()
+            condiciones.append(self._condicion_busqueda_texto(texto))
 
         if filtros.estado:
+            # Las opciones del select vienen del catálogo de
+            # 'estado_del_procedimiento' (abierto, aprobado, borrado,
+            # cancelado, en aprobación), así que el filtro debe aplicarse
+            # sobre ese mismo campo para que los valores coincidan.
             params["estado_del_procedimiento"] = sanitize_string(filtros.estado)
 
         if filtros.tipo_proceso:
             params["modalidad_de_contratacion"] = sanitize_string(filtros.tipo_proceso)
 
-        condiciones = []
+        if filtros.tipo_contrato:
+            params["tipo_de_contrato"] = sanitize_string(filtros.tipo_contrato)
 
         if filtros.fecha_publicacion_desde:
             condiciones.append(
@@ -192,6 +245,13 @@ class SecopRepository:
             response.raise_for_status()
             datos = response.json()
 
+        # La consulta usa comodines en las vocales para ignorar tildes, lo
+        # que puede traer coincidencias de más (ej. 'vias' -> 'v__s' también
+        # casaría con 'veas'). Aquí se descartan esos falsos positivos
+        # comparando el texto ya normalizado, sin tildes.
+        if filtros.buscar:
+            datos = self._filtrar_coincidencias_reales(datos, filtros.buscar)
+
         # Eliminar duplicados exactos
         datos_unicos = []
         vistos = set()
@@ -203,3 +263,28 @@ class SecopRepository:
 
         logger.info(f"Búsqueda finalizada. {len(datos_unicos)} procesos únicos.")
         return datos_unicos
+
+    @staticmethod
+    def _sin_tildes(texto: str) -> str:
+        """Pasa a minúsculas y quita tildes, para comparar de forma justa."""
+        normalizado = unicodedata.normalize("NFD", str(texto or ""))
+        return "".join(
+            c for c in normalizado if unicodedata.category(c) != "Mn"
+        ).lower()
+
+    def _filtrar_coincidencias_reales(
+        self, datos: List[Dict[str, Any]], termino: str
+    ) -> List[Dict[str, Any]]:
+        """Deja solo los procesos donde el término aparece de verdad."""
+        buscado = self._sin_tildes(termino)
+
+        resultado = []
+        for proceso in datos:
+            texto_proceso = " ".join(
+                self._sin_tildes(proceso.get(campo, ""))
+                for campo in self.CAMPOS_BUSQUEDA_TEXTO
+            )
+            if buscado in texto_proceso:
+                resultado.append(proceso)
+
+        return resultado

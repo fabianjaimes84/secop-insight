@@ -212,7 +212,14 @@
                 [class.ring-slate-800]="esResaltado(item.numeroProceso)"
                 [class.bg-slate-50]="esResaltado(item.numeroProceso)">
                 <p class="text-xs font-semibold text-slate-700">{{ item.numeroProceso }}</p>
-                <p class="text-[11px] text-slate-500">{{ item.entidad }}</p>
+                <p class="text-[11px] text-slate-500">
+                  {{ item.entidad }}
+                  @if (!item.ultimaActualizacion) {
+                    <span class="ml-1 inline-flex items-center rounded bg-red-50 px-1.5 py-0.5 text-[10px] font-medium text-red-600">
+                      <i class="fa-solid fa-triangle-exclamation mr-1"></i>Sin actualizar
+                    </span>
+                  }
+                </p>
               </div>
             }
           </div>
