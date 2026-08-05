@@ -229,7 +229,7 @@ def generar_carta_presentacion_endpoint(
         temp_dir = Path(tempfile.gettempdir()) / "secop_generados"
         temp_dir.mkdir(parents=True, exist_ok=True)
 
-        nombre_archivo = f"Formato_1_{perfil.nombre.replace(' ', '_')}.docx"
+        nombre_archivo = f"Formato 1 - Carta de presentación de la oferta - {perfil.codigo_proceso}.docx"
         output_path = temp_dir / nombre_archivo
 
         # Obtener datos del proceso (buscar que contenga el código del proponente)

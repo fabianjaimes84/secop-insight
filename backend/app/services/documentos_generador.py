@@ -18,39 +18,31 @@ PLANTILLAS_DIR = Path(__file__).parent.parent.parent / "plantillas"
 def reemplazar_texto_en_documento(doc: Document, reemplazos: dict) -> None:
     """
     Reemplaza texto en párrafos y tablas del documento.
-    Usa XML manipulation para garantizar que funcione correctamente.
-    Maneja también tablas anidadas.
+    Maneja placeholders que pueden estar divididos en múltiples runs.
 
     Args:
         doc: Documento Word
         reemplazos: Dict con {texto_original: texto_nuevo}
     """
-    from docx.oxml import parse_xml
-    from docx.oxml.ns import nsdecls
-
-    # Función auxiliar para reemplazar en un párrafo
+    # Función para reemplazar en un párrafo
     def reemplazar_en_parrafo(para, reemplazos):
         for original, nuevo in reemplazos.items():
-            if original in para.text:
-                # Obtener el elemento XML del párrafo
-                p = para._element
+            # Obtener texto del párrafo
+            texto_para = para.text
 
-                # Obtener todo el texto del párrafo
+            if original in texto_para:
+                # Fusionar todos los runs en uno para garantizar que el reemplazo funcione
                 texto_completo = para.text
+                texto_reemplazado = texto_completo.replace(original, nuevo)
 
-                if original in texto_completo:
-                    # Reemplazar en el texto completo
-                    texto_nuevo_completo = texto_completo.replace(original, nuevo)
+                # Limpiar todos los runs
+                for run in para.runs:
+                    r_element = run._element
+                    r_element.getparent().remove(r_element)
 
-                    # Eliminar todos los runs existentes
-                    for run in para.runs:
-                        r = run._element
-                        r.getparent().remove(r)
-
-                    # Crear un nuevo run con el texto reemplazado
-                    new_run = para.add_run(texto_nuevo_completo)
-
-                    print(f"    Reemplazo: '{original}' = '{nuevo[:30]}...'")
+                # Agregar nuevo texto como un solo run
+                para.add_run(texto_reemplazado)
+                print(f"    Reemplazo: '{original}' = '{nuevo[:30]}...'")
 
     # Reemplazar en párrafos principales
     for para in doc.paragraphs:
@@ -137,6 +129,7 @@ def generar_carta_presentacion(
         marca_consorcio = "X" if tipo_proponente == "consorcio" else ""
 
         # Marcar grupo empresarial y cotiza en bolsa
+        # Si es True → X (marcado Sí), Si es False → blanco
         marca_grupo = "X" if pertenece_grupo else ""
         marca_bolsa = "X" if cotiza_bolsa else ""
 
@@ -176,7 +169,7 @@ def generar_carta_presentacion(
             "«propo_per_natu»": marca_natural,
             "«propo_union»": marca_union,
             "«propo_conso»": marca_consorcio,
-            "«grupo_m»": marca_grupo,
+            "«grupo_emp»": marca_grupo,
             "«cot_bolsa»": marca_bolsa,
             "«nom_o_raz_soc_1»": accionista_1_nombre,
             "«nom_o_raz_soc_2»": accionista_2_nombre,
