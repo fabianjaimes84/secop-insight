@@ -9,15 +9,49 @@ from app.models.empresa import EmpresaEntrada, EmpresaRespuesta
 router = APIRouter(prefix="/empresas", tags=["empresas"])
 
 
-
 def _reemplazar_accionistas(db: Session, empresa: Empresa, datos: EmpresaEntrada) -> None:
     """Los accionistas se reemplazan completos en cada guardado."""
     for antiguo in list(empresa.accionistas):
         db.delete(antiguo)
     db.flush()
 
-    for accionista in datos.accionistas:
-        db.add(AccionistaEmpresa(empresa_id=empresa.id, **accionista.model_dump()))
+    accionistas_a_guardar = datos.accionistas if datos.accionistas else []
+
+    # Si es persona natural y no tiene accionistas, crear uno con sus datos
+    if not empresa.es_persona_juridica and not accionistas_a_guardar:
+        accionistas_a_guardar = [
+            {
+                "nombre": empresa.nom_o_raz_social,
+                "cedula": "",
+                "cedula_ciudad": "",
+                "mat_profe": "",
+                "direccion_personal": empresa.direccion,
+                "ciudad_personal": empresa.ciudad,
+                "correo_personal": empresa.correo,
+                "telefono_personal_fijo": empresa.telefono_fijo,
+                "telefono_personal_celular": empresa.telefono_celular,
+                "orden": 1,
+                "porcentaje": "100%",
+                "es_representante_legal": True,
+            }
+        ]
+
+    for i, accionista in enumerate(accionistas_a_guardar, start=1):
+        # Convertir dict a modelo si es necesario
+        if isinstance(accionista, dict):
+            accionista_dict = accionista
+        else:
+            accionista_dict = accionista.model_dump()
+
+        # Si no se especifica orden, usar índice
+        if "orden" not in accionista_dict:
+            accionista_dict["orden"] = i
+
+        # Para persona natural, marcar como representante legal
+        if not empresa.es_persona_juridica and i == 1:
+            accionista_dict["es_representante_legal"] = True
+
+        db.add(AccionistaEmpresa(empresa_id=empresa.id, **accionista_dict))
 
 
 @router.get("", response_model=list[EmpresaRespuesta])
@@ -64,11 +98,6 @@ def crear_empresa(datos: EmpresaEntrada, db: Session = Depends(obtener_db)):
     empresa = Empresa(**datos.model_dump(exclude={'accionistas'}))
     empresa.nom_o_raz_social = datos.nom_o_raz_social.strip()
 
-    # Una persona natural se representa a sí misma: si no se indicó
-    # representante, se completa con su propio nombre.
-    if not empresa.es_persona_juridica and not empresa.repre_nombre.strip():
-        empresa.repre_nombre = empresa.nom_o_raz_social
-
     db.add(empresa)
     db.flush()
 
@@ -92,9 +121,6 @@ def actualizar_empresa(
         setattr(empresa, campo, valor)
 
     _reemplazar_accionistas(db, empresa, datos)
-
-    if not empresa.es_persona_juridica and not empresa.repre_nombre.strip():
-        empresa.repre_nombre = empresa.nom_o_raz_social
 
     db.commit()
     db.refresh(empresa)

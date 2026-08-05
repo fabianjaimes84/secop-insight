@@ -190,17 +190,12 @@ class Empresa(Base):
     nit = Column(String, default="")
     es_persona_juridica = Column(Boolean, default=False)
 
-    # Representante legal. En una persona natural, se representa a sí misma.
-    repre_nombre = Column(String, default="")
-    repre_cedula = Column(String, default="")
-    repre_mat_profe = Column(String, default="")
-
-    # Datos de contacto, que se usan cuando esta empresa es la líder.
-    contac_direccion = Column(String, default="")
-    contac_ciudad = Column(String, default="")
-    contac_email = Column(String, default="")
-    contac_tele = Column(String, default="")
-    contac_telefax = Column(String, default="")
+    # Datos corporativos (de la empresa, no personales)
+    direccion = Column(String, default="")
+    ciudad = Column(String, default="")
+    correo = Column(String, default="")
+    telefono_fijo = Column(String, default="")
+    telefono_celular = Column(String, default="")
 
     # Contador o revisor fiscal, elegido del catálogo (opcional).
     contador_id = Column(Integer, ForeignKey("contadores.id"), nullable=True)
@@ -221,8 +216,8 @@ class Empresa(Base):
 
 class AccionistaEmpresa(Base):
     """
-    Socio o accionista de una empresa, con su porcentaje de participación.
-    Se usa en los formatos de factores de desempate.
+    Socio o accionista de una empresa.
+    Incluye su participación y rol en la empresa.
     """
 
     __tablename__ = "accionistas_empresa"
@@ -230,12 +225,26 @@ class AccionistaEmpresa(Base):
     id = Column(Integer, primary_key=True, index=True)
     empresa_id = Column(Integer, ForeignKey("empresas.id"), nullable=False)
 
-    orden = Column(Integer, default=1)
+    # Datos básicos del accionista
     nombre = Column(String, default="")
     cedula = Column(String, default="")
+
+    # Participación en la empresa
+    orden = Column(Integer, default=1)
     porcentaje = Column(String, default="")
+    es_representante_legal = Column(Boolean, default=False)
 
     empresa = relationship("Empresa", back_populates="accionistas")
+    participaciones_como_representante_principal = relationship(
+        "ProponentePerfil",
+        foreign_keys="ProponentePerfil.repre_principal_accionista_id",
+        back_populates="repre_principal",
+    )
+    participaciones_como_representante_suplente = relationship(
+        "ProponentePerfil",
+        foreign_keys="ProponentePerfil.repre_suplente_accionista_id",
+        back_populates="repre_suplente",
+    )
 
 
 class ProponentePerfil(Base):
@@ -248,7 +257,7 @@ class ProponentePerfil(Base):
 
     id = Column(Integer, primary_key=True, index=True)
 
-    # 'natural', 'consorcio' o 'union_temporal'
+    # 'natural', 'juridica', 'consorcio' o 'union_temporal'
     tipo = Column(String, default="natural")
     # Nombre único de la oferta: "UNION TEMPORAL VIALTEK 16"
     nombre = Column(String, unique=True, index=True)
@@ -256,28 +265,55 @@ class ProponentePerfil(Base):
     # Proceso al que se presenta. Un proceso tiene un solo proponente.
     codigo_proceso = Column(String, default="", index=True)
 
-    # Quién firma los formatos. Siempre es el representante legal de una
-    # de las empresas que conforman el proponente.
+    # Empresa que firma los formatos (representante_empresa_id)
     representante_empresa_id = Column(
         Integer, ForeignKey("empresas.id"), nullable=True
     )
 
-    # Datos de la entidad contratante para el Formato 11 (no siempre
-    # vienen completos en lo que trae SECOP).
-    entidad_telefono = Column(String, default="")
-    entidad_pagina = Column(String, default="")
-    entidad_horario = Column(String, default="")
-    entidad_correo = Column(String, default="")
+    # Accionistas que firman el Pacto de Transparencia y formatos
+    # Son socios de una de las empresas integrantes
+    repre_principal_accionista_id = Column(
+        Integer, ForeignKey("accionistas_empresa.id"), nullable=True
+    )
+    repre_suplente_accionista_id = Column(
+        Integer, ForeignKey("accionistas_empresa.id"), nullable=True
+    )
 
-    # Fechas clave de esta oferta. El cierre se trae del cronograma del
-    # proceso; la carta de gerencia se calcula un día antes del cierre.
+    # INFORMACIÓN ESPECIAL DE LA OFERTA
+
+    # Personal clave evaluable
+    pers_clave_eval = Column(String, default="")
+
+    # Experiencia que debe demostrar
+    experiencia_requerida = Column(String, default="")
+
+    # Póliza (del proponente para esta oferta)
+    poliza_numero = Column(String, default="")
+    poliza_vigencia = Column(String, default="")
+    poliza_valor = Column(Float, nullable=True)
+
+    # Datos de la entidad contratante para esta oferta
+    entidad_telefono = Column(String, default="")
+    entidad_correo = Column(String, default="")
+    entidad_horario = Column(String, default="")
+    entidad_url_web = Column(String, default="")
+    entidad_url_politica_datos = Column(String, default="")
+
+    # Fechas clave de esta oferta
     fecha_cierre = Column(String, default="")
     fecha_carta_gerencia = Column(String, default="")
 
-    # Personal clave evaluable (texto libre, se repite entre ofertas)
-    pers_clave_eval = Column(String, default="")
-
     representante_empresa = relationship("Empresa", foreign_keys=[representante_empresa_id])
+    repre_principal = relationship(
+        "AccionistaEmpresa",
+        foreign_keys=[repre_principal_accionista_id],
+        back_populates="participaciones_como_representante_principal",
+    )
+    repre_suplente = relationship(
+        "AccionistaEmpresa",
+        foreign_keys=[repre_suplente_accionista_id],
+        back_populates="participaciones_como_representante_suplente",
+    )
 
     integrantes = relationship(
         "IntegranteProponente",

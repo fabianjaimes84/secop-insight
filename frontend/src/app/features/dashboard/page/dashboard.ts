@@ -292,7 +292,7 @@ export class Dashboard implements OnInit {
       }
 
       const diasRestantes = this.diasHasta(fechaCierre);
-      if (diasRestantes >= 0 && diasRestantes <= DIAS_VENTANA_ALERTA) {
+      if (diasRestantes >= 0) {
         listaProximosACerrar.push({
           numeroProceso: importado.numero_proceso,
           entidad: importado.entidad,

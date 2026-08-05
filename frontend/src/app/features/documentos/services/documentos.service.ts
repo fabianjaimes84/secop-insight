@@ -12,10 +12,13 @@ export interface Contador {
 
 export interface Accionista {
   id?: number;
-  orden: number;
   nombre: string;
   cedula: string;
+
+  // Participación
+  orden: number;
   porcentaje: string;
+  es_representante_legal: boolean;
 }
 
 export interface Empresa {
@@ -24,15 +27,12 @@ export interface Empresa {
   nit: string;
   es_persona_juridica: boolean;
 
-  repre_nombre: string;
-  repre_cedula: string;
-  repre_mat_profe: string;
-
-  contac_direccion: string;
-  contac_ciudad: string;
-  contac_email: string;
-  contac_tele: string;
-  contac_telefax: string;
+  // Datos corporativos de la empresa
+  direccion: string;
+  ciudad: string;
+  correo: string;
+  telefono_fijo: string;
+  telefono_celular: string;
 
   contador_id: number | null;
   contador?: Contador | null;
@@ -59,23 +59,38 @@ export interface IntegranteProponente {
 
 export interface PerfilProponente {
   id?: number;
-  tipo: 'natural' | 'consorcio' | 'union_temporal';
+  tipo: 'natural' | 'juridica' | 'consorcio' | 'union_temporal';
   nombre: string;
   codigo_proceso: string;
   representante_empresa_id: number | null;
 
+  // Representantes que firman (accionistas)
+  repre_principal_accionista_id: number | null;
+  repre_suplente_accionista_id: number | null;
+
+  // Información especial de la oferta
+  pers_clave_eval: string;
+  experiencia_requerida: string;
+
+  // Póliza
+  poliza_numero: string;
+  poliza_vigencia: string;
+  poliza_valor: number | null;
+
+  // Datos de la entidad contratante
   entidad_telefono: string;
-  entidad_pagina: string;
-  entidad_horario: string;
   entidad_correo: string;
-  entidad_politica: string;
+  entidad_horario: string;
+  entidad_url_web: string;
+  entidad_url_politica_datos: string;
 
   fecha_cierre: string;
   fecha_carta_gerencia: string;
 
-  pers_clave_eval: string;
   integrantes: IntegranteProponente[];
   representante_empresa?: Empresa | null;
+  repre_principal?: Accionista | null;
+  repre_suplente?: Accionista | null;
 }
 
 export interface FechasProceso {
@@ -207,21 +222,24 @@ export class DocumentosService {
       nom_o_raz_social: '',
       nit: '',
       es_persona_juridica: false,
-      repre_nombre: '',
-      repre_cedula: '',
-      repre_mat_profe: '',
-      contac_direccion: '',
-      contac_ciudad: '',
-      contac_email: '',
-      contac_tele: '',
-      contac_telefax: '',
+      direccion: '',
+      ciudad: '',
+      correo: '',
+      telefono_fijo: '',
+      telefono_celular: '',
       contador_id: null,
       accionistas: [],
     };
   }
 
   accionistaVacio(orden: number): Accionista {
-    return { orden, nombre: '', cedula: '', porcentaje: '' };
+    return {
+      nombre: '',
+      cedula: '',
+      orden,
+      porcentaje: '',
+      es_representante_legal: false,
+    };
   }
 
   integranteVacio(empresaId: number, orden: number, esLider: boolean): IntegranteProponente {
@@ -244,14 +262,20 @@ export class DocumentosService {
       nombre: '',
       codigo_proceso: '',
       representante_empresa_id: null,
+      repre_principal_accionista_id: null,
+      repre_suplente_accionista_id: null,
+      pers_clave_eval: '',
+      experiencia_requerida: '',
+      poliza_numero: '',
+      poliza_vigencia: '',
+      poliza_valor: null,
       entidad_telefono: '',
-      entidad_pagina: '',
-      entidad_horario: '',
       entidad_correo: '',
-      entidad_politica: '',
+      entidad_horario: '',
+      entidad_url_web: '',
+      entidad_url_politica_datos: '',
       fecha_cierre: '',
       fecha_carta_gerencia: '',
-      pers_clave_eval: '',
       integrantes: [],
     };
   }

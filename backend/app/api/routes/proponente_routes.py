@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.core.logger import logger
 from app.db.base import obtener_db
-from app.db.models import Empresa, IntegranteProponente, ProponentePerfil
+from app.db.models import Empresa, IntegranteProponente, ProponentePerfil, AccionistaEmpresa
 from app.models.proponente_perfil import (
     ProponentePerfilEntrada,
     ProponentePerfilRespuesta,
@@ -12,7 +12,7 @@ from app.models.proponente_perfil import (
 
 router = APIRouter(prefix="/proponentes", tags=["proponentes"])
 
-TIPOS_VALIDOS = {"natural", "consorcio", "union_temporal"}
+TIPOS_VALIDOS = {"natural", "juridica", "consorcio", "union_temporal"}
 
 
 def _validar(datos: ProponentePerfilEntrada, db: Session) -> None:
@@ -60,13 +60,77 @@ def _validar(datos: ProponentePerfilEntrada, db: Session) -> None:
                 ),
             )
 
-    if datos.tipo == "natural":
+    # Validar representante principal y suplente (accionistas)
+    if datos.repre_principal_accionista_id is not None:
+        accionista = db.query(AccionistaEmpresa).filter_by(
+            id=datos.repre_principal_accionista_id
+        ).first()
+        if accionista is None:
+            raise HTTPException(
+                status_code=422,
+                detail=f"El accionista con id {datos.repre_principal_accionista_id} no existe.",
+            )
+        # El accionista debe pertenecer a una de las empresas integrantes
+        ids_participantes = {i.empresa_id for i in datos.integrantes}
+        if accionista.empresa_id not in ids_participantes:
+            raise HTTPException(
+                status_code=422,
+                detail="El representante principal debe ser un socio de una de las empresas integrantes.",
+            )
+
+    if datos.repre_suplente_accionista_id is not None:
+        accionista = db.query(AccionistaEmpresa).filter_by(
+            id=datos.repre_suplente_accionista_id
+        ).first()
+        if accionista is None:
+            raise HTTPException(
+                status_code=422,
+                detail=f"El accionista con id {datos.repre_suplente_accionista_id} no existe.",
+            )
+        # El accionista debe pertenecer a una de las empresas integrantes
+        ids_participantes = {i.empresa_id for i in datos.integrantes}
+        if accionista.empresa_id not in ids_participantes:
+            raise HTTPException(
+                status_code=422,
+                detail="El representante suplente debe ser un socio de una de las empresas integrantes.",
+            )
+
+        # Principal y suplente no pueden ser el mismo
+        if datos.repre_principal_accionista_id == datos.repre_suplente_accionista_id:
+            raise HTTPException(
+                status_code=422,
+                detail="El representante principal y suplente deben ser personas diferentes.",
+            )
+
+    # Validaciones por tipo de proponente
+    if datos.tipo == "natural" or datos.tipo == "juridica":
         if len(datos.integrantes) > 1:
             raise HTTPException(
                 status_code=422,
-                detail="Una persona natural solo puede tener una empresa.",
+                detail=f"Una {datos.tipo} solo puede tener una empresa.",
+            )
+        # No puede tener suplente
+        if datos.repre_suplente_accionista_id is not None:
+            raise HTTPException(
+                status_code=422,
+                detail=f"Una {datos.tipo} no puede tener representante suplente.",
             )
         return
+
+    # En consorcios y uniones temporales
+    if datos.tipo in ("consorcio", "union_temporal"):
+        if len(datos.integrantes) < 2:
+            raise HTTPException(
+                status_code=422,
+                detail=f"Un {datos.tipo} debe tener al menos 2 empresas.",
+            )
+
+        # Debe tener suplente
+        if datos.repre_suplente_accionista_id is None:
+            raise HTTPException(
+                status_code=422,
+                detail=f"Un {datos.tipo} DEBE tener representante suplente.",
+            )
 
     # En consorcios y uniones temporales debe haber exactamente un líder
     lideres = [i for i in datos.integrantes if i.es_lider]
@@ -124,13 +188,20 @@ def crear_proponente(
         nombre=datos.nombre.strip(),
         codigo_proceso=datos.codigo_proceso.strip(),
         representante_empresa_id=datos.representante_empresa_id,
+        repre_principal_accionista_id=datos.repre_principal_accionista_id,
+        repre_suplente_accionista_id=datos.repre_suplente_accionista_id,
+        pers_clave_eval=datos.pers_clave_eval,
+        experiencia_requerida=datos.experiencia_requerida,
+        poliza_numero=datos.poliza_numero,
+        poliza_vigencia=datos.poliza_vigencia,
+        poliza_valor=datos.poliza_valor,
         entidad_telefono=datos.entidad_telefono,
-        entidad_pagina=datos.entidad_pagina,
-        entidad_horario=datos.entidad_horario,
         entidad_correo=datos.entidad_correo,
+        entidad_horario=datos.entidad_horario,
+        entidad_url_web=datos.entidad_url_web,
+        entidad_url_politica_datos=datos.entidad_url_politica_datos,
         fecha_cierre=datos.fecha_cierre,
         fecha_carta_gerencia=datos.fecha_carta_gerencia,
-        pers_clave_eval=datos.pers_clave_eval,
     )
     db.add(perfil)
     db.flush()
@@ -159,13 +230,20 @@ def actualizar_proponente(
     perfil.nombre = datos.nombre.strip()
     perfil.codigo_proceso = datos.codigo_proceso.strip()
     perfil.representante_empresa_id = datos.representante_empresa_id
+    perfil.repre_principal_accionista_id = datos.repre_principal_accionista_id
+    perfil.repre_suplente_accionista_id = datos.repre_suplente_accionista_id
+    perfil.pers_clave_eval = datos.pers_clave_eval
+    perfil.experiencia_requerida = datos.experiencia_requerida
+    perfil.poliza_numero = datos.poliza_numero
+    perfil.poliza_vigencia = datos.poliza_vigencia
+    perfil.poliza_valor = datos.poliza_valor
     perfil.entidad_telefono = datos.entidad_telefono
-    perfil.entidad_pagina = datos.entidad_pagina
-    perfil.entidad_horario = datos.entidad_horario
     perfil.entidad_correo = datos.entidad_correo
+    perfil.entidad_horario = datos.entidad_horario
+    perfil.entidad_url_web = datos.entidad_url_web
+    perfil.entidad_url_politica_datos = datos.entidad_url_politica_datos
     perfil.fecha_cierre = datos.fecha_cierre
     perfil.fecha_carta_gerencia = datos.fecha_carta_gerencia
-    perfil.pers_clave_eval = datos.pers_clave_eval
 
     _reemplazar_integrantes(db, perfil, datos)
 

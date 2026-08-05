@@ -1,6 +1,6 @@
 from pydantic import BaseModel, ConfigDict
 
-from app.models.empresa import EmpresaRespuesta
+from app.models.empresa import EmpresaRespuesta, AccionistaRespuesta
 
 
 class IntegranteEntrada(BaseModel):
@@ -22,21 +22,34 @@ class IntegranteEntrada(BaseModel):
 class ProponentePerfilEntrada(BaseModel):
     """Datos que se envían al crear o editar un proponente."""
 
-    tipo: str = "natural"  # natural | consorcio | union_temporal
+    tipo: str = "natural"  # natural | juridica | consorcio | union_temporal
     nombre: str = ""
     codigo_proceso: str = ""
 
     representante_empresa_id: int | None = None
 
+    # Representantes que firman (accionistas)
+    repre_principal_accionista_id: int | None = None
+    repre_suplente_accionista_id: int | None = None
+
+    # Información especial de la oferta
+    pers_clave_eval: str = ""
+    experiencia_requerida: str = ""
+
+    # Póliza
+    poliza_numero: str = ""
+    poliza_vigencia: str = ""
+    poliza_valor: float | None = None
+
+    # Datos de la entidad contratante
     entidad_telefono: str = ""
-    entidad_pagina: str = ""
-    entidad_horario: str = ""
     entidad_correo: str = ""
+    entidad_horario: str = ""
+    entidad_url_web: str = ""
+    entidad_url_politica_datos: str = ""
 
     fecha_cierre: str = ""
     fecha_carta_gerencia: str = ""
-
-    pers_clave_eval: str = ""
 
     integrantes: list[IntegranteEntrada] = []
 
@@ -67,15 +80,24 @@ class ProponentePerfilRespuesta(BaseModel):
     nombre: str
     codigo_proceso: str
     representante_empresa_id: int | None
+    repre_principal_accionista_id: int | None
+    repre_suplente_accionista_id: int | None
+    pers_clave_eval: str
+    experiencia_requerida: str
+    poliza_numero: str
+    poliza_vigencia: str
+    poliza_valor: float | None
     entidad_telefono: str
-    entidad_pagina: str
-    entidad_horario: str
     entidad_correo: str
+    entidad_horario: str
+    entidad_url_web: str
+    entidad_url_politica_datos: str
     fecha_cierre: str
     fecha_carta_gerencia: str
-    pers_clave_eval: str
     integrantes: list[IntegranteRespuesta] = []
     representante_empresa: EmpresaRespuesta | None = None
+    repre_principal: AccionistaRespuesta | None = None
+    repre_suplente: AccionistaRespuesta | None = None
 
 
 class ProponentePerfilResumen(BaseModel):

@@ -6,10 +6,13 @@ from app.models.contador import ContadorRespuesta
 class AccionistaEntrada(BaseModel):
     """Socio o accionista de una empresa."""
 
-    orden: int = 1
     nombre: str = ""
     cedula: str = ""
+
+    # Participación
+    orden: int = 1
     porcentaje: str = ""
+    es_representante_legal: bool = False
 
 
 class AccionistaRespuesta(AccionistaEntrada):
@@ -25,17 +28,12 @@ class EmpresaEntrada(BaseModel):
     nit: str = ""
     es_persona_juridica: bool = False
 
-    # Representante legal (una persona natural se representa a sí misma)
-    repre_nombre: str = ""
-    repre_cedula: str = ""
-    repre_mat_profe: str = ""
-
-    # Contacto, se usa cuando esta empresa lidera el proponente
-    contac_direccion: str = ""
-    contac_ciudad: str = ""
-    contac_email: str = ""
-    contac_tele: str = ""
-    contac_telefax: str = ""
+    # Datos corporativos de la empresa
+    direccion: str = ""
+    ciudad: str = ""
+    correo: str = ""
+    telefono_fijo: str = ""
+    telefono_celular: str = ""
 
     # Contador o revisor fiscal, del catálogo (opcional)
     contador_id: int | None = None
@@ -51,15 +49,11 @@ class EmpresaRespuesta(BaseModel):
     nit: str
     es_persona_juridica: bool
 
-    repre_nombre: str
-    repre_cedula: str
-    repre_mat_profe: str
-
-    contac_direccion: str
-    contac_ciudad: str
-    contac_email: str
-    contac_tele: str
-    contac_telefax: str
+    direccion: str
+    ciudad: str
+    correo: str
+    telefono_fijo: str
+    telefono_celular: str
 
     contador_id: int | None
     contador: ContadorRespuesta | None = None

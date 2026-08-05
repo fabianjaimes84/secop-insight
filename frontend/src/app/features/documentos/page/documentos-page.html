@@ -63,7 +63,7 @@
                   </span>
                 </div>
                 <p class="text-[11px] text-slate-500">
-                  NIT {{ empresa.nit || '—' }} · Rep. {{ empresa.repre_nombre || '—' }}
+                  NIT {{ empresa.nit || '—' }} · Contador: {{ empresa.contador?.nombre || 'Sin asignar' }}
                 </p>
                 @if (empresa.accionistas.length) {
                   <p class="text-[11px] text-slate-400">
@@ -247,6 +247,7 @@
           <div class="flex items-center">
             <label class="flex cursor-pointer items-center gap-2 text-xs text-slate-600">
               <input type="checkbox" [(ngModel)]="empresaEnEdicion.es_persona_juridica"
+                (change)="cambiarTipoEmpresa()"
                 class="h-4 w-4 rounded border-slate-300 text-blue-600" />
               Es persona jurídica
             </label>
@@ -254,74 +255,73 @@
           <div class="flex items-center">
             <label class="flex cursor-pointer items-center gap-2 text-xs text-slate-600">
               <input type="checkbox" [ngModel]="!empresaEnEdicion.es_persona_juridica"
-                (change)="empresaEnEdicion.es_persona_juridica = !$event.target.checked"
+                (change)="empresaEnEdicion.es_persona_juridica = !$event.target.checked; cambiarTipoEmpresa()"
                 class="h-4 w-4 rounded border-slate-300 text-blue-600" />
               Es persona natural
             </label>
           </div>
         </div>
 
-        <div>
-          <p class="mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">Representante legal</p>
-          <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
-            <input type="text" [(ngModel)]="empresaEnEdicion.repre_nombre" placeholder="Nombre"
-              class="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
-            <input type="text" [(ngModel)]="empresaEnEdicion.repre_cedula" placeholder="Cédula"
-              class="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
-            <input type="text" [(ngModel)]="empresaEnEdicion.repre_mat_profe" placeholder="Matrícula profesional"
-              class="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
-          </div>
-        </div>
 
         <div>
-          <p class="mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">Contacto</p>
-          <p class="mb-2 text-[10px] text-slate-400">Se usa en los formatos cuando esta empresa lidera.</p>
+          <p class="mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">Datos corporativos</p>
           <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
-            <input type="text" [(ngModel)]="empresaEnEdicion.contac_direccion" placeholder="Dirección"
+            <input type="text" [(ngModel)]="empresaEnEdicion.direccion" placeholder="Dirección"
               class="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
-            <input type="text" [(ngModel)]="empresaEnEdicion.contac_ciudad" placeholder="Ciudad"
+            <input type="text" [(ngModel)]="empresaEnEdicion.ciudad" placeholder="Ciudad"
               class="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
-            <input type="text" [(ngModel)]="empresaEnEdicion.contac_email" placeholder="Correo electrónico"
+            <input type="text" [(ngModel)]="empresaEnEdicion.correo" placeholder="Correo electrónico"
               class="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
-            <input type="text" [(ngModel)]="empresaEnEdicion.contac_tele" placeholder="Teléfono"
+            <input type="text" [(ngModel)]="empresaEnEdicion.telefono_fijo" placeholder="Teléfono fijo"
               class="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
-            <input type="text" [(ngModel)]="empresaEnEdicion.contac_telefax" placeholder="Telefax"
+            <input type="text" [(ngModel)]="empresaEnEdicion.telefono_celular" placeholder="Teléfono celular"
               class="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
           </div>
         </div>
 
-        @if (empresaEnEdicion.es_persona_juridica) {
-          <div>
-            <div class="mb-2 flex items-center justify-between">
-              <p class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Accionistas o socios</p>
-              <button type="button" class="rounded border border-slate-300 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50"
-                (click)="agregarAccionista()">
-                <i class="fa-solid fa-plus mr-1"></i>Agregar
-              </button>
-            </div>
+        <div>
+          <div class="mb-2 flex items-center justify-between">
+            <p class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Accionistas o socios</p>
+            <button type="button" class="rounded border border-slate-300 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50"
+              [disabled]="!empresaEnEdicion.es_persona_juridica && empresaEnEdicion.accionistas.length >= 1"
+              (click)="agregarAccionista()">
+              <i class="fa-solid fa-plus mr-1"></i>Agregar
+            </button>
+          </div>
 
-            @for (accionista of empresaEnEdicion.accionistas; track $index) {
-              <div class="mb-2 grid grid-cols-1 gap-2 md:grid-cols-[1fr_auto_auto_auto]">
-                <input type="text" [(ngModel)]="accionista.nombre" placeholder="Nombre"
-                  class="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
-                <input type="text" [(ngModel)]="accionista.cedula" placeholder="Cédula"
-                  class="rounded-lg border border-slate-300 px-3 py-2 text-sm md:w-40" />
+          @for (accionista of empresaEnEdicion.accionistas; track $index) {
+            <div class="mb-2 grid grid-cols-1 gap-2 md:grid-cols-[1fr_auto_auto_auto]">
+              <input type="text" [(ngModel)]="accionista.nombre" placeholder="Nombre"
+                class="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+              <input type="text" [(ngModel)]="accionista.cedula" placeholder="Cédula"
+                class="rounded-lg border border-slate-300 px-3 py-2 text-sm md:w-40" />
+
+              @if (!empresaEnEdicion.es_persona_juridica) {
+                <!-- Persona natural: 100% fijo -->
+                <div class="rounded-lg border border-slate-300 bg-slate-100 px-3 py-2 text-sm md:w-20 flex items-center">
+                  <span class="text-slate-700 font-medium">100%</span>
+                </div>
+              } @else {
+                <!-- Persona jurídica: editable -->
                 <input type="text" [(ngModel)]="accionista.porcentaje" placeholder="%"
                   class="rounded-lg border border-slate-300 px-3 py-2 text-sm md:w-20" />
-                <button type="button" class="px-2 text-slate-400 hover:text-red-600" (click)="quitarAccionista($index)">
-                  <i class="fa-solid fa-trash-can text-xs"></i>
-                </button>
-              </div>
-            }
+              }
 
-            @if (empresaEnEdicion.accionistas.length) {
+              <button type="button" class="px-2 text-slate-400 hover:text-red-600" (click)="quitarAccionista($index)">
+                <i class="fa-solid fa-trash-can text-xs"></i>
+              </button>
+            </div>
+          }
+
+          @if (empresaEnEdicion.accionistas.length) {
+            @if (empresaEnEdicion.es_persona_juridica) {
               <p class="text-xs" [class.text-green-600]="sumaAccionistas === 100" [class.text-amber-600]="sumaAccionistas !== 100">
                 Suma: {{ sumaAccionistas }}%
                 @if (sumaAccionistas !== 100) { <span>(debería sumar 100%)</span> }
               </p>
             }
-          </div>
-        }
+          }
+        </div>
 
         <div>
           <p class="mb-3 text-[11px] font-semibold uppercase tracking-wide text-slate-500">Contador o revisor fiscal</p>
@@ -404,14 +404,14 @@
         </div>
 
         <div class="flex items-center gap-2">
-          @for (n of [1, 2, 3, 4]; track n) {
+          @for (n of [1, 2, 3, 4, 5]; track n) {
             <div class="flex flex-1 items-center gap-2">
               <div class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-medium"
                 [class.bg-blue-600]="paso >= n" [class.text-white]="paso >= n"
                 [class.bg-slate-200]="paso < n" [class.text-slate-500]="paso < n">
                 {{ n }}
               </div>
-              @if (n < 4) {
+              @if (n < 5) {
                 <div class="h-0.5 flex-1" [class.bg-blue-600]="paso > n" [class.bg-slate-200]="paso <= n"></div>
               }
             </div>
@@ -427,6 +427,7 @@
           <div class="grid grid-cols-1 gap-3">
             @for (opcion of [
               { tipo: 'natural', titulo: 'Persona natural', desc: 'Te presentas solo' },
+              { tipo: 'juridica', titulo: 'Persona jurídica', desc: 'Tu empresa se presenta' },
               { tipo: 'union_temporal', titulo: 'Unión temporal', desc: 'Varias empresas se unen' },
               { tipo: 'consorcio', titulo: 'Consorcio', desc: 'Varias empresas se unen' }
             ]; track opcion.tipo) {
@@ -499,29 +500,6 @@
                 </div>
               }
 
-              <div class="mt-3 border-t border-slate-100 pt-3">
-                <p class="mb-2 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-                  Para esta oferta, {{ nombreEmpresa(integrante.empresa_id) }}...
-                </p>
-                <div class="flex flex-wrap gap-3">
-                  <label class="flex cursor-pointer items-center gap-1.5 text-[11px] text-slate-600">
-                    <input type="checkbox" [(ngModel)]="integrante.pertenece_grupo" class="h-3.5 w-3.5 rounded border-slate-300 text-blue-600" />
-                    Pertenece a grupo empresarial
-                  </label>
-                  <label class="flex cursor-pointer items-center gap-1.5 text-[11px] text-slate-600">
-                    <input type="checkbox" [(ngModel)]="integrante.cotiza_bolsa" class="h-3.5 w-3.5 rounded border-slate-300 text-blue-600" />
-                    Cotiza en bolsa
-                  </label>
-                  <label class="flex cursor-pointer items-center gap-1.5 text-[11px] text-slate-600">
-                    <input type="checkbox" [(ngModel)]="integrante.acredita_mujeres" class="h-3.5 w-3.5 rounded border-slate-300 text-blue-600" />
-                    Empresa de mujeres
-                  </label>
-                  <label class="flex cursor-pointer items-center gap-1.5 text-[11px] text-slate-600">
-                    <input type="checkbox" [(ngModel)]="integrante.acredita_discapacidad" class="h-3.5 w-3.5 rounded border-slate-300 text-blue-600" />
-                    Personas con discapacidad
-                  </label>
-                </div>
-              </div>
             </div>
           }
 
@@ -533,29 +511,124 @@
           }
         }
 
-        <!-- PASO 3: REPRESENTANTE -->
+        <!-- PASO 3: REPRESENTANTE PRINCIPAL Y SUPLENTE -->
         @if (paso === 3) {
-          <p class="mb-1 text-sm font-medium text-slate-700">¿Quién representa al proponente?</p>
-          <p class="mb-4 text-xs text-slate-500">Es quien firma los formatos de la oferta.</p>
+          <div class="space-y-4">
+            <!-- Representante Principal -->
+            <div>
+              <p class="mb-1 text-sm font-medium text-slate-700">Representante principal</p>
+              <p class="mb-3 text-xs text-slate-500">Es quien firma el Pacto de Transparencia y los formatos.</p>
 
-          <div class="grid grid-cols-1 gap-3">
-            @for (empresa of empresasElegidas(); track empresa.id) {
-              <button type="button" class="rounded-lg border-2 p-4 text-left transition"
-                [class.border-blue-500]="borrador.representante_empresa_id === empresa.id"
-                [class.bg-blue-50]="borrador.representante_empresa_id === empresa.id"
-                [class.border-slate-200]="borrador.representante_empresa_id !== empresa.id"
-                (click)="borrador.representante_empresa_id = empresa.id!">
-                <p class="text-sm font-medium text-slate-800">{{ empresa.repre_nombre || empresa.nom_o_raz_social }}</p>
-                <p class="text-xs text-slate-500">
-                  {{ empresa.repre_cedula || 'Sin cédula registrada' }} · {{ empresa.nom_o_raz_social }}
+              <select [(ngModel)]="borrador.repre_principal_accionista_id"
+                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                <option [ngValue]="null">Selecciona un socio/accionista...</option>
+                @for (accionista of accionistasParaPrincipal(); track accionista.id) {
+                  <option [ngValue]="accionista.id">
+                    {{ accionista.nombre }} ({{ accionista.cedula }})
+                  </option>
+                }
+              </select>
+
+              @if (borrador.repre_principal_accionista_id) {
+                <p class="mt-2 text-xs text-slate-600">
+                  <i class="fa-solid fa-check text-green-600 mr-1"></i>
+                  Seleccionado: {{ nombreAccionista(borrador.repre_principal_accionista_id) }}
                 </p>
-              </button>
+              }
+            </div>
+
+            <!-- Representante Suplente (solo si Consorcio/Unión Temporal) -->
+            @if (requiereRepresentanteSuplente) {
+              <div class="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                <p class="mb-1 text-sm font-medium text-slate-700">Representante suplente</p>
+                <p class="mb-3 text-xs text-slate-500">Debe ser una persona diferente al representante principal.</p>
+
+                <select [(ngModel)]="borrador.repre_suplente_accionista_id"
+                  class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                  <option [ngValue]="null">Selecciona un socio/accionista diferente...</option>
+                  @for (accionista of accionistasParaSuplente(); track accionista.id) {
+                    <option [ngValue]="accionista.id">
+                      {{ accionista.nombre }} ({{ accionista.cedula }})
+                    </option>
+                  }
+                </select>
+
+                @if (borrador.repre_suplente_accionista_id) {
+                  <p class="mt-2 text-xs text-slate-600">
+                    <i class="fa-solid fa-check text-green-600 mr-1"></i>
+                    Seleccionado: {{ nombreAccionista(borrador.repre_suplente_accionista_id) }}
+                  </p>
+                }
+              </div>
             }
           </div>
         }
 
-        <!-- PASO 4: PROCESO Y NOMBRE -->
+        <!-- PASO 4: INFORMACIÓN ESPECIAL DE LA OFERTA -->
         @if (paso === 4) {
+          <p class="mb-4 text-sm font-medium text-slate-700">Información especial de la oferta</p>
+
+          <div class="space-y-4">
+            <!-- Personal Clave Evaluable -->
+            <div class="rounded-lg border border-slate-200 p-3">
+              <p class="mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                Personal clave evaluable
+              </p>
+              <textarea [(ngModel)]="borrador.pers_clave_eval" placeholder="Nombre, cargo, experiencia..."
+                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                rows="3"></textarea>
+            </div>
+
+            <!-- Experiencia Requerida -->
+            <div class="rounded-lg border border-slate-200 p-3">
+              <p class="mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                Experiencia requerida
+              </p>
+              <textarea [(ngModel)]="borrador.experiencia_requerida" placeholder="Descripción de la experiencia..."
+                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                rows="3"></textarea>
+            </div>
+
+            <!-- Póliza -->
+            <div class="rounded-lg border border-slate-200 p-3">
+              <p class="mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                Póliza
+              </p>
+              <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
+                <input type="text" [(ngModel)]="borrador.poliza_numero" placeholder="Número"
+                  class="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+                <input type="text" [(ngModel)]="borrador.poliza_vigencia" placeholder="Vigencia (ej. 01/01/2025 - 31/12/2025)"
+                  class="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+                <input type="number" [(ngModel)]="borrador.poliza_valor" placeholder="Valor" step="0.01"
+                  class="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+              </div>
+            </div>
+
+            <!-- Datos de la Entidad Contratante -->
+            <div class="rounded-lg border border-slate-200 p-3">
+              <p class="mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                Datos de la entidad contratante
+              </p>
+              <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+                <input type="text" [(ngModel)]="borrador.entidad_telefono" placeholder="Teléfono"
+                  class="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+                <input type="text" [(ngModel)]="borrador.entidad_correo" placeholder="Correo"
+                  class="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+                <input type="text" [(ngModel)]="borrador.entidad_horario" placeholder="Horario de atención"
+                  class="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+                <input type="text" [(ngModel)]="borrador.entidad_url_web" placeholder="URL web"
+                  class="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+              </div>
+              <div class="mt-3">
+                <input type="text" [(ngModel)]="borrador.entidad_url_politica_datos" placeholder="URL política de datos personales"
+                  class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- PASO 5: PROCESO Y NOMBRE -->
+        @if (paso === 5) {
           <p class="mb-4 text-sm font-medium text-slate-700">Proceso y nombre de la oferta</p>
 
           <div class="mb-4">
@@ -563,13 +636,13 @@
             <select [(ngModel)]="borrador.codigo_proceso" (change)="cargarFechas()"
               class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
               <option value="">Selecciona un proceso...</option>
-              @for (p of procesosDisponibles(); track p.id) {
+              @for (p of procesosPendientes(); track p.id) {
                 <option [value]="codigoBase(p.numero_proceso)">
                   {{ codigoBase(p.numero_proceso) }} — {{ p.entidad }}
                 </option>
               }
             </select>
-            <p class="mt-1 text-[10px] text-slate-400">Se muestran solo procesos sin oferta entregada.</p>
+            <p class="mt-1 text-[10px] text-slate-400">Solo procesos pendientes por enviar.</p>
           </div>
 
           <div class="mb-4">
@@ -593,7 +666,7 @@
             <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
               <div>
                 <label class="mb-1 block text-[10px] text-slate-500">Cierre de la oferta</label>
-                <input type="text" [(ngModel)]="borrador.fecha_cierre"
+                <input type="text" [value]="borrador.fecha_cierre"
                   disabled
                   class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-500" />
               </div>
@@ -609,26 +682,6 @@
             </p>
           </div>
 
-          <div class="mb-4 rounded-lg border border-slate-200 p-3">
-            <p class="mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-              Datos de la entidad (Formato 11)
-            </p>
-            <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
-              <input type="text" [(ngModel)]="borrador.entidad_telefono" placeholder="Teléfono"
-                class="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
-              <input type="text" [(ngModel)]="borrador.entidad_pagina" placeholder="Página web"
-                class="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
-              <input type="text" [(ngModel)]="borrador.entidad_horario" placeholder="Horario de atención"
-                class="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
-              <input type="text" [(ngModel)]="borrador.entidad_correo" placeholder="Correo electrónico"
-                class="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
-            </div>
-            <div class="mt-3">
-              <textarea [(ngModel)]="borrador.entidad_politica" placeholder="Política de tratamiento de datos"
-                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                rows="4"></textarea>
-            </div>
-          </div>
 
           <div class="rounded-lg bg-slate-50 p-4 space-y-3">
             <p class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Resumen completo</p>
@@ -666,10 +719,10 @@
             <div>
               <p class="text-[10px] font-semibold uppercase text-slate-400">Datos de la entidad</p>
               @if (borrador.entidad_telefono) { <p class="text-xs text-slate-600">Teléfono: <span class="font-medium">{{ borrador.entidad_telefono }}</span></p> }
-              @if (borrador.entidad_pagina) { <p class="text-xs text-slate-600">Página web: <span class="font-medium">{{ borrador.entidad_pagina }}</span></p> }
+              @if (borrador.entidad_url_web) { <p class="text-xs text-slate-600">Página web: <span class="font-medium">{{ borrador.entidad_url_web }}</span></p> }
               @if (borrador.entidad_horario) { <p class="text-xs text-slate-600">Horario: <span class="font-medium">{{ borrador.entidad_horario }}</span></p> }
               @if (borrador.entidad_correo) { <p class="text-xs text-slate-600">Correo: <span class="font-medium">{{ borrador.entidad_correo }}</span></p> }
-              @if (borrador.entidad_politica) { <p class="text-xs text-slate-600">Política de datos: <span class="font-medium">Sí</span></p> }
+              @if (borrador.entidad_url_politica_datos) { <p class="text-xs text-slate-600">Política de datos: <span class="font-medium">Sí</span></p> }
             </div>
           </div>
 
@@ -683,7 +736,7 @@
           <i class="fa-solid fa-arrow-left mr-1"></i>Atrás
         </button>
 
-        @if (paso < 4) {
+        @if (paso < 5) {
           <button type="button" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
             (click)="siguientePaso()">
             Siguiente<i class="fa-solid fa-arrow-right ml-1"></i>

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import {
+  Accionista,
   Contador,
   DocumentosService,
   Empresa,
@@ -11,6 +12,7 @@ import {
   RespuestaChecklist,
 } from '../services/documentos.service';
 import { HtmlDescargaService } from '../../search/services/html-descarga.service';
+import { FavoritosService } from '../../../core/services/favoritos.service';
 
 @Component({
   selector: 'app-documentos-page',
@@ -46,9 +48,12 @@ export class DocumentosPage implements OnInit {
   cargando = false;
   error: string | null = null;
 
+  favoritos: any[] = [];
+
   constructor(
     private documentosService: DocumentosService,
-    private htmlDescargaService: HtmlDescargaService
+    private htmlDescargaService: HtmlDescargaService,
+    private favoritosService: FavoritosService
   ) {}
 
   ngOnInit(): void {
@@ -56,6 +61,10 @@ export class DocumentosPage implements OnInit {
     this.cargarContadores();
     this.cargarProponentes();
     this.cargarProcesos();
+
+    this.favoritosService.favoritos$.subscribe((fav) => {
+      this.favoritos = fav;
+    });
   }
 
   // ==========================================
@@ -113,6 +122,7 @@ export class DocumentosPage implements OnInit {
       return;
     }
 
+    this.cargando = true;
     this.documentosService.crearContador(this.nuevoContador).subscribe({
       next: (creado) => {
         this.contadores.push(creado);
@@ -122,9 +132,12 @@ export class DocumentosPage implements OnInit {
         this.mostrarNuevoContador = false;
         this.nuevoContador = null;
         this.error = null;
+        this.cargando = false;
       },
-      error: (err) =>
-        (this.error = err?.error?.detail || 'No se pudo guardar el contador.'),
+      error: (err) => {
+        this.error = err?.error?.detail || 'No se pudo guardar el contador.';
+        this.cargando = false;
+      },
     });
   }
 
@@ -141,6 +154,10 @@ export class DocumentosPage implements OnInit {
       ...empresa,
       accionistas: (empresa.accionistas ?? []).map((a) => ({ ...a })),
     };
+  }
+
+  cambiarTipoEmpresa(): void {
+    // Solo actualizar el tipo, los accionistas se agregan manualmente
   }
 
   agregarAccionista(): void {
@@ -168,6 +185,13 @@ export class DocumentosPage implements OnInit {
     if (!this.empresaEnEdicion.nom_o_raz_social.trim()) {
       this.error = 'El nombre o razón social es obligatorio.';
       return;
+    }
+
+    // Si es persona natural, asignar 100% automáticamente
+    if (!this.empresaEnEdicion.es_persona_juridica) {
+      this.empresaEnEdicion.accionistas.forEach((a) => {
+        a.porcentaje = '100%';
+      });
     }
 
     const peticion = this.empresaEnEdicion.id
@@ -205,6 +229,7 @@ export class DocumentosPage implements OnInit {
     this.paso = 1;
     this.asistenteAbierto = true;
     this.error = null;
+    this.cargandoFechas = false;
   }
 
   editarProponente(id: number): void {
@@ -226,31 +251,57 @@ export class DocumentosPage implements OnInit {
   }
 
   get esPlural(): boolean {
-    return this.borrador?.tipo !== 'natural';
+    return this.borrador?.tipo === 'consorcio' || this.borrador?.tipo === 'union_temporal';
+  }
+
+  get requiereRepresentanteSuplente(): boolean {
+    return this.esPlural;
   }
 
   siguientePaso(): void {
     if (!this.borrador) return;
 
-    if (this.paso === 1 && !this.esPlural && this.borrador.integrantes.length > 1) {
-      this.borrador.integrantes = this.borrador.integrantes.slice(0, 1);
+    // Paso 1: Solo validar que se haya seleccionado un tipo
+    if (this.paso === 1) {
+      if (!this.borrador.tipo) {
+        this.error = 'Selecciona un tipo de proponente.';
+        return;
+      }
     }
 
-    if (this.paso === 2 && !this.borrador.integrantes.length) {
-      this.error = 'Agrega al menos una empresa.';
-      return;
+    // Paso 2: Validar integrantes según el tipo
+    if (this.paso === 2) {
+      if (!this.borrador.integrantes.length) {
+        this.error = 'Agrega al menos una empresa.';
+        return;
+      }
+      if (this.esPlural && this.borrador.integrantes.length < 2) {
+        this.error = 'Un consorcio/unión temporal debe tener al menos 2 empresas.';
+        return;
+      }
     }
 
-    if (this.paso === 3 && !this.borrador.representante_empresa_id) {
-      this.error = 'Elige quién representa al proponente.';
-      return;
+    // Paso 3: Validar representante principal y suplente
+    if (this.paso === 3) {
+      if (!this.borrador.repre_principal_accionista_id) {
+        this.error = 'Elige un representante principal.';
+        return;
+      }
+      if (this.requiereRepresentanteSuplente && !this.borrador.repre_suplente_accionista_id) {
+        this.error = 'Elige un representante suplente.';
+        return;
+      }
+      if (this.borrador.repre_principal_accionista_id === this.borrador.repre_suplente_accionista_id) {
+        this.error = 'El representante principal y suplente deben ser personas diferentes.';
+        return;
+      }
     }
 
     this.error = null;
-    this.paso = Math.min(4, this.paso + 1);
+    this.paso = Math.min(5, this.paso + 1);
 
-    // Al entrar al paso 4, si ya hay proceso elegido, trae las fechas.
-    if (this.paso === 4 && this.borrador.codigo_proceso) {
+    // Al entrar al paso 5, si ya hay proceso elegido, trae las fechas.
+    if (this.paso === 5 && this.borrador.codigo_proceso) {
       this.cargarFechas();
     }
   }
@@ -260,11 +311,13 @@ export class DocumentosPage implements OnInit {
     this.paso = Math.max(1, this.paso - 1);
   }
 
-  elegirTipo(tipo: 'natural' | 'consorcio' | 'union_temporal'): void {
+  elegirTipo(tipo: 'natural' | 'juridica' | 'consorcio' | 'union_temporal'): void {
     if (!this.borrador) return;
     this.borrador.tipo = tipo;
     this.borrador.integrantes = [];
     this.borrador.representante_empresa_id = null;
+    this.borrador.repre_principal_accionista_id = null;
+    this.borrador.repre_suplente_accionista_id = null;
   }
 
   agregarIntegrante(): void {
@@ -335,6 +388,38 @@ export class DocumentosPage implements OnInit {
     return this.empresaPorId(id)?.nom_o_raz_social ?? '';
   }
 
+  // ==========================================
+  // Accionistas (representantes)
+  // ==========================================
+
+  accionistasDisponibles(): Accionista[] {
+    if (!this.borrador) return [];
+    const empresasIntegrantes = this.empresasElegidas();
+    return empresasIntegrantes.flatMap((e) => e.accionistas || []);
+  }
+
+  accionistasParaPrincipal(): Accionista[] {
+    return this.accionistasDisponibles();
+  }
+
+  accionistasParaSuplente(): Accionista[] {
+    // Suplente debe ser diferente al principal
+    const principal = this.borrador?.repre_principal_accionista_id;
+    return this.accionistasDisponibles().filter((a) => a.id !== principal);
+  }
+
+  nombreAccionista(accionistaId: number | null): string {
+    if (!accionistaId) return '';
+    const todos = this.accionistasDisponibles();
+    return todos.find((a) => a.id === accionistaId)?.nombre || '';
+  }
+
+  cedulaAccionista(accionistaId: number | null): string {
+    if (!accionistaId) return '';
+    const todos = this.accionistasDisponibles();
+    return todos.find((a) => a.id === accionistaId)?.cedula || '';
+  }
+
   procesosDisponibles(): any[] {
     const procesosUsados = new Set(
       this.proponentes
@@ -346,6 +431,24 @@ export class DocumentosPage implements OnInit {
 
   procesoPorCodigo(codigo: string): any {
     return this.procesos.find(p => this.codigoBase(p.numero_proceso) === codigo);
+  }
+
+  procesosPendientes(): any[] {
+    const procesosUsados = new Set(
+      this.proponentes
+        .filter(p => p.codigo_proceso)
+        .map(p => p.codigo_proceso)
+    );
+
+    // Solo mostrar procesos que están en seguimiento (favoritos) y sin oferta enviada
+    const favoritosEnSeguimiento = this.favoritos
+      .filter(f => !f.ofertaEnviada)
+      .map(f => this.codigoBase(f.proceso.referencia_del_proceso));
+
+    return this.procesos.filter(p => {
+      const codigo = this.codigoBase(p.numero_proceso);
+      return favoritosEnSeguimiento.includes(codigo) && !procesosUsados.has(codigo);
+    });
   }
 
   /** Trae la fecha de cierre real del cronograma y calcula la carta de gerencia. */
@@ -474,6 +577,7 @@ export class DocumentosPage implements OnInit {
   etiquetaTipo(tipo: string): string {
     const etiquetas: Record<string, string> = {
       natural: 'Persona natural',
+      juridica: 'Persona jurídica',
       consorcio: 'Consorcio',
       union_temporal: 'Unión temporal',
     };

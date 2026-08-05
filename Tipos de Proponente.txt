@@ -1,0 +1,62 @@
+Tipos de Proponente:
+
+* Unión temporal: 1+ integrantes, Tiene 1 representante (un socio de los integrantes) 1 representante suplente (un socio de los integrantes)
+* Consorcio: 1+ integrantes, Tiene 1 representante (un socio de los integrantes) 1 representante suplente (un socio de los integrantes)
+* Persona natural:  Tiene 1 representante (ella misma)
+* Persona jurídica: Tiene 1 representante (un socio)
+
+Integrante:
+
+* Es una empresa (jurídica o natural)
+* Persona natural = 1 socio
+* Persona jurídica = 1+ socios
+* Integrante tiene  1 contador o revisor fiscal
+* cada proponente tiene un porcentaje de compromiso, el cual sumado da 100%
+
+Relación Proponente ↔ Oferta:
+
+* 1 oferta solo puede tener 1 proponente
+* Unión temporal es un proponente → 1 única oferta (no se reutiliza)
+* Consorcio es un proponente → 1 única oferta (no se reutiliza)
+* Persona natural es un proponente → MUCHAS ofertas (se reutiliza)
+* Persona jurídica es un proponente → MUCHAS ofertas (se reutiliza)
+
+
+cada oferta, hay que llenar determinados formatos. Eso se llama formatos para pliego tipo. Entonces, cuando es una unión temporal o un consorcio. Son: 
+Anexo 4 - Pacto de Transparencia.docx (se elabora 1 vez)
+Certificación del proponente en SG-SST.docx (se elabora 1 vez)
+Certificado Anticorrupción.docx (se elabora por cada uno de los integrantes)
+Certificado de inhabilidades o incompatibilidades.docx (se elabora por cada uno de los integrantes)
+Formato 1 - Carta de presentación de la oferta.docx (se elabora 1 vez)
+Formato 2 - Conformación de Proponente plural.docx (se elabora 1 vez)
+Formato 3 - Experiencia.xlsx (se elabora 1 vez)
+Formato 5 - Pagos de seguridad social y aportes legales.docx (se elabora por cada uno de los integrantes)
+Formato 6 - Vinculación de personas con discapacidad.docx (se elabora 1 vez)
+Formato 7 - Puntaje de Industria Nacional.docx (se elabora 1 vez)
+Formato 8 - Aceptación y cumplimiento personal clave.docx (se elabora 1 vez)
+Formato 9 - Experiencia y formación académica personal clave evaluable.docx (se elabora 1 vez)
+Formato 10 B - Factores de desempate.docx (se elabora por cada uno de los integrantes)
+Formato 10 H - Factores de desempate.docx (se elabora por cada uno de los integrantes)
+Formato 11 - Auto para el Tratamiento de Datos Personales.docx (se elabora por cada uno de los integrantes)
+Formato 12 - Factor de Sostenibilidad.docx (se elabora 1 vez)
+Formato 13 - Acreditación Emprendimiento y Empresa de Mujeres.docx (se elabora 1 vez)
+
+
+Cada empresa o integrante tiene un nombre o razón social. Tiene también un nit, una dirección, ciudad, correo electrónico, teléfono y fijo y teléfono celular. Debe tener un representante legal. 
+
+Este representante legal puede ser un socio el cual tiene: un nombre, una cédula, una matrícula profesional, dirección, ciudad, correo electrónico, teléfono y fijo y teléfono celular.
+
+
+Información especial POR OFERTA:
+
+* Personal clave evaluable
+* Experiencia requerida (para demostrar)
+* Póliza (número, vigencia, valor)
+* Teléfono de la entidad 
+* Correo de la entidad 
+* Horario de la entidad 
+* URL web  de la entidad 
+* URL política tratamiento de datos personales de la entidad
+
+
+
