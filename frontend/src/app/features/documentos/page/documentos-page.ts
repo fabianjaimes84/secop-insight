@@ -297,6 +297,14 @@ export class DocumentosPage implements OnInit {
       }
     }
 
+    // Paso 4: Validar que haya procesos disponibles antes de ir al paso 5
+    if (this.paso === 4) {
+      if (!this.procesosPendientes().length) {
+        this.error = 'No hay procesos disponibles. Por favor, ve a Seguimiento y actualiza el estado del proceso a "Presentar oferta".';
+        return;
+      }
+    }
+
     this.error = null;
     this.paso = Math.min(5, this.paso + 1);
 
@@ -329,13 +337,22 @@ export class DocumentosPage implements OnInit {
       return;
     }
 
-    this.borrador.integrantes.push(
-      this.documentosService.integranteVacio(
-        disponibles[0].id!,
-        this.borrador.integrantes.length + 1,
-        this.borrador.integrantes.length === 0
-      )
+    const nuevoIntegrante = this.documentosService.integranteVacio(
+      disponibles[0].id!,
+      this.borrador.integrantes.length + 1,
+      this.borrador.integrantes.length === 0
     );
+
+    // Calcular automáticamente el porcentaje restante para plurales
+    if (this.esPlural && this.borrador.integrantes.length > 0) {
+      const sumaExistente = this.sumaCompromisos;
+      const restante = 100 - sumaExistente;
+      if (restante > 0) {
+        nuevoIntegrante.compromiso = `${restante}%`;
+      }
+    }
+
+    this.borrador.integrantes.push(nuevoIntegrante);
   }
 
   empresasDisponibles(): Empresa[] {
