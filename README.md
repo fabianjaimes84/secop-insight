@@ -19,30 +19,53 @@ El proyecto integra un **backend desarrollado en FastAPI** y un **frontend desar
 - Arquitectura por capas.
 - Repository Pattern.
 - Transformación de datos mediante modelos Pydantic.
+- Base de datos SQLite con SQLAlchemy ORM.
+- Gestión de empresas y catálogo de contadores.
+- Gestión de proponentes (personas naturales, jurídicas, consorcios y uniones temporales).
+- Validación de procesos disponibles para presentación de ofertas.
+- Cálculo automático de fechas de cierre desde cronograma de procesos.
 
 ### Frontend
 
 - Angular 20 con componentes Standalone.
 - Arquitectura basada en Features.
-- Formulario de búsqueda.
-- Tabla de resultados.
+- Formulario de búsqueda avanzada.
+- Tabla de resultados con filtros.
 - Consumo de la API mediante HttpClient.
 - Modelos tipados mediante interfaces TypeScript.
 - Configuración mediante Environments.
 - Endpoints y rutas centralizados.
 - Diseño modular y escalable.
+- **Módulo de Documentos**:
+  - Registro y gestión de empresas (personas naturales y jurídicas).
+  - Asignación de accionistas y contadores a empresas.
+  - Creación de proponentes con empresas integrantes.
+  - **Formulario Uno**: Preguntas progresivas sobre características de empresas:
+    - ¿Está en grupo empresarial? (con tipo de relación condicional).
+    - ¿Cotiza en bolsa?
+    - ¿Es empresa de mujeres?
+    - ¿Está constituida por personas con discapacidad?
+  - Cálculo automático de porcentajes de participación.
+  - Validación de duplicados en nombres de proponentes.
+  - Formato de fechas en DD/MM/YYYY.
+- **Módulo de Seguimiento**:
+  - Listado de procesos con estado.
+  - Protección de procesos con ofertas vinculadas.
+  - Actualización de estado de procesos.
 
 ## Funcionalidades planeadas
 
+- Exportación de formularios a PDF.
 - Exportación de resultados a Excel.
-- Exportación a Word y PDF.
 - Descarga automática de documentos del proceso.
-- Dashboard de indicadores.
-- Seguimiento de procesos.
+- Dashboard de indicadores mejorado.
 - Análisis documental mediante Inteligencia Artificial.
-- Sistema de autenticación.
+- Sistema de autenticación y roles.
 - Caché de consultas.
-- Paginación.
+- Paginación avanzada.
+- Generación de reportes consolidados.
+- Notificaciones de cambios en procesos.
+- Integración con e-firma.
 
 ---
 
@@ -126,6 +149,8 @@ frontend/
 - FastAPI
 - HTTPX
 - Pydantic
+- SQLAlchemy (ORM)
+- SQLite (Base de datos)
 - Pandas
 - OpenPyXL
 - Uvicorn
@@ -149,17 +174,36 @@ secop-insight/
 ├── backend/
 │   ├── app/
 │   │   ├── api/
+│   │   │   ├── routes/
+│   │   │   │   ├── proceso_routes.py
+│   │   │   │   ├── empresa_routes.py
+│   │   │   │   ├── proponente_routes.py
+│   │   │   │   └── documentos_routes.py
+│   │   │   └── main.py
 │   │   ├── core/
+│   │   ├── db/
+│   │   │   ├── base.py
+│   │   │   └── models.py
 │   │   ├── models/
 │   │   ├── repositories/
 │   │   ├── services/
 │   │   └── main.py
 │   │
+│   ├── secop.db (SQLite)
 │   ├── requirements.txt
 │   └── .env
 │
 ├── frontend/
 │   ├── src/
+│   │   └── app/
+│   │       ├── core/
+│   │       ├── features/
+│   │       │   ├── dashboard/
+│   │       │   ├── documentos/
+│   │       │   ├── seguimiento/
+│   │       │   └── search/
+│   │       ├── layout/
+│   │       └── shared/
 │   └── package.json
 │
 ├── docs/
@@ -279,6 +323,48 @@ La URL del backend se administra mediante estos archivos, evitando direcciones h
 
 ---
 
+# 📋 Módulo de Documentos
+
+El módulo de Documentos permite gestionar empresas, contadores y crear proponentes para presentar ofertas en procesos de SECOP II.
+
+## Flujo de creación de un proponente
+
+### Paso 1: Seleccionar proceso
+- Elige un proceso de SECOP II disponible en estado "Presentar oferta".
+- El sistema valida que hay procesos disponibles; si no, muestra una advertencia.
+
+### Paso 2: Empresas y Formulario Uno
+- Agrega las empresas que participarán en la oferta.
+- Completa el **Formulario Uno** con preguntas progresivas:
+  - **¿Está en grupo empresarial?** → Si selecciona "Sí", aparece "Tipo de relación"
+  - **Tipo de relación:** Matriz, Subsidiaria, Filial, Subordinada, Otro (solo si está en grupo)
+  - **¿Cotiza en bolsa?**
+  - **¿Es empresa de mujeres?**
+  - **¿Está constituida por personas con discapacidad?**
+- El sistema calcula automáticamente los porcentajes si la suma no es 100%.
+
+### Paso 3: Representantes
+- Selecciona el representante principal (quien firma el Pacto de Transparencia).
+- Asigna un representante suplente (opcional).
+
+### Paso 4: Información especial
+- Ingresa datos adicionales como póliza, experiencia requerida, etc.
+- Datos de contacto de la entidad contratante.
+
+### Paso 5: Revisión y guardado
+- Verifica todos los datos.
+- Guarda el proponente en la base de datos.
+- Genera un checklist de documentos por enviar.
+
+## Gestión de empresas
+
+- **Registro único**: Una empresa se registra una sola vez y se reutiliza en múltiples ofertas.
+- **Personas naturales y jurídicas**: Soporta ambos tipos.
+- **Accionistas**: Asigna múltiples accionistas a una empresa con sus respectivos porcentajes.
+- **Contadores**: Vincula un contador/revisor fiscal a cada empresa.
+
+---
+
 # 📡 API
 
 ## Obtener procesos
@@ -351,6 +437,69 @@ Permite realizar búsquedas utilizando múltiples filtros simultáneamente.
 
 ---
 
+## Gestión de empresas
+
+**GET** `/empresas`
+
+Obtiene el listado de empresas registradas.
+
+**POST** `/empresas`
+
+Crea una nueva empresa.
+
+### Body
+
+| Campo | Tipo | Requerido |
+|--------|------|-----------|
+| nom_o_raz_social | string | ✓ |
+| nit | string | ✓ |
+| es_persona_juridica | boolean | ✓ |
+| direccion | string | |
+| ciudad | string | |
+| correo | string | |
+| telefono_fijo | string | |
+| telefono_celular | string | |
+| contador_id | integer | |
+| accionistas | array | |
+
+---
+
+## Gestión de proponentes
+
+**GET** `/proponentes`
+
+Obtiene el listado de proponentes creados.
+
+**POST** `/proponentes`
+
+Crea un nuevo proponente para una oferta.
+
+**GET** `/proponentes/{id}`
+
+Obtiene los detalles de un proponente específico.
+
+**PUT** `/proponentes/{id}`
+
+Actualiza un proponente existente.
+
+---
+
+## Fechas de procesos
+
+**GET** `/documentos/fechas/{codigo_proceso}`
+
+Obtiene las fechas clave del cronograma de un proceso (cierre de oferta, carta de gerencia, etc.).
+
+### Respuesta
+
+| Campo | Tipo | Descripción |
+|--------|------|-------------|
+| fecha_cierre | string | Fecha de cierre en formato DD/MM/YYYY HH:MM |
+| zona_cierre | string | Zona horaria |
+| fecha_carta_gerencia | string | Fecha de cierre de carta de gerencia |
+
+---
+
 # 🔄 Flujo de funcionamiento
 
 1. El usuario realiza una búsqueda desde la interfaz web.
@@ -374,6 +523,10 @@ Permite realizar búsquedas utilizando múltiples filtros simultáneamente.
 - ✅ Consulta de procesos.
 - ✅ Búsqueda avanzada.
 - ✅ API REST documentada.
+- ✅ Base de datos SQLite con SQLAlchemy.
+- ✅ Gestión de empresas y proponentes.
+- ✅ Validación de procesos.
+- ✅ Cálculo automático de fechas.
 
 ## Frontend
 
@@ -383,7 +536,12 @@ Permite realizar búsquedas utilizando múltiples filtros simultáneamente.
 - ✅ Integración con FastAPI.
 - ✅ Modelos tipados.
 - ✅ Configuración mediante Environments.
-- 🚧 Nuevas funcionalidades en desarrollo.
+- ✅ Módulo de Documentos (gestión de empresas y proponentes).
+- ✅ Formulario Uno con flujo progresivo.
+- ✅ Módulo de Seguimiento.
+- 🚧 Exportación a PDF.
+- 🚧 Mejoras en dashboard.
+- 🚧 Análisis documental.
 
 ---
 
@@ -400,6 +558,10 @@ Permite realizar búsquedas utilizando múltiples filtros simultáneamente.
 - ✅ Filtros por estado
 - ✅ Filtros por modalidad
 - ✅ Filtros por fechas
+- ✅ Base de datos SQLite
+- ✅ Gestión de empresas
+- ✅ Gestión de proponentes
+- ✅ Validación de procesos
 - ⏳ Paginación
 - ⏳ Exportación a Excel
 - ⏳ Descarga de documentos
@@ -413,9 +575,16 @@ Permite realizar búsquedas utilizando múltiples filtros simultáneamente.
 - ✅ Formulario de búsqueda
 - ✅ Tabla de resultados
 - ✅ Consumo de la API
-- ⏳ Dashboard
-- ⏳ Paginación
-- ⏳ Exportación de resultados
+- ✅ Dashboard básico
+- ✅ Módulo de Documentos
+- ✅ Gestión de empresas
+- ✅ Asistente de proponentes
+- ✅ Formulario Uno (preguntas progresivas)
+- ✅ Módulo de Seguimiento
+- ⏳ Dashboard mejorado
+- ⏳ Paginación avanzada
+- ⏳ Exportación a PDF
+- ⏳ Exportación de resultados a Excel
 
 ## Inteligencia Artificial
 
@@ -447,14 +616,15 @@ http://127.0.0.1:8000/redoc
 
 ## Versión actual
 
-**v1.0.0-alpha**
+**v1.0.1-beta**
 
 ## Historial
 
-| Versión | Estado |
-|----------|--------|
-| v0.1.0 | Backend MVP |
-| v1.0.0-alpha | Backend y Frontend integrados |
+| Versión | Estado | Cambios principales |
+|----------|--------|----------------------|
+| v0.1.0 | ✅ Backend MVP | Arquitectura base, integración SECOP II |
+| v1.0.0-alpha | ✅ Backend y Frontend integrados | Angular 20, búsqueda avanzada |
+| v1.0.1-beta | 🚧 Gestión de proponentes | Módulo de Documentos, Formulario Uno, Seguimiento |
 
 ---
 

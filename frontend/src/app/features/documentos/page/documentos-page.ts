@@ -658,4 +658,29 @@ export class DocumentosPage implements OnInit {
     };
     return etiquetas[tipo] ?? tipo;
   }
+
+  descargarFormato1(): void {
+    if (!this.proponenteSeleccionado?.id) {
+      this.error = 'No hay proponente seleccionado';
+      return;
+    }
+
+    this.cargando = true;
+    this.documentosService.descargarCartaPresentacion(this.proponenteSeleccionado.id).subscribe({
+      next: (blob) => {
+        // Crear link de descarga
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Formato_1_${this.proponenteSeleccionado?.nombre}.docx`;
+        link.click();
+        window.URL.revokeObjectURL(url);
+        this.cargando = false;
+      },
+      error: (err) => {
+        this.error = 'Error al descargar el documento: ' + (err.error?.detail || err.message);
+        this.cargando = false;
+      }
+    });
+  }
 }

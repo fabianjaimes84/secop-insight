@@ -119,11 +119,21 @@
                 <i class="fa-solid fa-file-lines mr-1"></i>Generales de la oferta
               </p>
               @for (item of itemsGenerales; track item.nombre_archivo) {
-                <label class="flex cursor-pointer items-start gap-3 rounded-lg px-2 py-2 hover:bg-slate-50">
-                  <input type="checkbox" class="mt-0.5 h-4 w-4 cursor-pointer rounded border-slate-300 text-blue-600"
-                    [checked]="estaSeleccionado(item)" (change)="alternarSeleccion(item)" />
-                  <span class="text-xs text-slate-700">{{ item.nombre }}</span>
-                </label>
+                <div class="flex cursor-pointer items-start gap-3 rounded-lg px-2 py-2 hover:bg-slate-50">
+                  <label class="flex flex-1 cursor-pointer items-start gap-3">
+                    <input type="checkbox" class="mt-0.5 h-4 w-4 cursor-pointer rounded border-slate-300 text-blue-600"
+                      [checked]="estaSeleccionado(item)" (change)="alternarSeleccion(item)" />
+                    <span class="text-xs text-slate-700">{{ item.nombre }}</span>
+                  </label>
+                  @if (item.codigo === 'formato_1') {
+                    <button type="button"
+                      class="flex-shrink-0 rounded bg-green-50 px-2 py-1 text-[10px] font-medium text-green-700 hover:bg-green-100"
+                      (click)="descargarFormato1()"
+                      title="Descargar Formato 1">
+                      <i class="fa-solid fa-download mr-1"></i>Descargar
+                    </button>
+                  }
+                </div>
               }
             </div>
           }
@@ -579,6 +589,19 @@
               @if (sumaCompromisos !== 100) { <span>(debería sumar 100%)</span> }
             </p>
           }
+
+          <!-- Empresa Representante -->
+          <div class="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4">
+            <label class="block text-sm font-medium text-slate-700 mb-2">Empresa que firma los documentos</label>
+            <p class="text-xs text-slate-500 mb-3">Selecciona cuál empresa será la representante y firmará los formatos.</p>
+            <select [(ngModel)]="borrador.representante_empresa_id"
+              class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+              <option [ngValue]="null">-- Selecciona una empresa --</option>
+              @for (integrante of borrador.integrantes; track integrante.empresa_id) {
+                <option [ngValue]="integrante.empresa_id">{{ nombreEmpresa(integrante.empresa_id) }}</option>
+              }
+            </select>
+          </div>
         }
 
         <!-- PASO 3: REPRESENTANTE PRINCIPAL Y SUPLENTE -->

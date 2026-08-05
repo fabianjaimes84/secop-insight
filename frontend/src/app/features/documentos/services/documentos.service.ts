@@ -210,6 +210,13 @@ export class DocumentosService {
     });
   }
 
+  descargarCartaPresentacion(proponenteId: number): Observable<Blob> {
+    return this.http.get<Blob>(
+      `${this.API_URL}/documentos/generar/carta-presentacion/${proponenteId}`,
+      { responseType: 'blob' as 'json' }
+    );
+  }
+
   // ==========================================
   // Plantillas vacías
   // ==========================================

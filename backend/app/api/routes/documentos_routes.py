@@ -1,10 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+from pathlib import Path
+import tempfile
 
 from app.db.base import obtener_db
 from app.db.models import ProcesoHtmlDescarga, ProponentePerfil
 from app.services.catalogo_formatos import formatos_aplicables
+from app.services.documentos_generador import generar_carta_presentacion
 
 router = APIRouter(prefix="/documentos", tags=["documentos"])
 
@@ -178,3 +182,97 @@ def obtener_checklist(
         total=len(items),
         items=items,
     )
+
+
+@router.get("/generar/carta-presentacion/{proponente_id}")
+def generar_carta_presentacion_endpoint(
+    proponente_id: int,
+    db: Session = Depends(obtener_db),
+):
+    """
+    Genera la Carta de Presentación de Oferta para un proponente.
+    Retorna el archivo Word descargable.
+    """
+    try:
+        # Obtener proponente
+        perfil = db.query(ProponentePerfil).filter(
+            ProponentePerfil.id == proponente_id
+        ).first()
+
+        if not perfil:
+            raise HTTPException(status_code=404, detail="Proponente no encontrado")
+
+        # Validaciones
+        if not perfil.codigo_proceso:
+            raise HTTPException(
+                status_code=400,
+                detail="El proponente no tiene proceso asignado"
+            )
+
+        # Obtener datos del representante
+        representante = perfil.representante_empresa
+        if not representante:
+            raise HTTPException(
+                status_code=400,
+                detail="El proponente no tiene empresa representante asignada. Ve a Paso 1 o Paso 2."
+            )
+
+        # Obtener accionista para obtener más datos
+        accionista_principal = perfil.repre_principal
+        if not accionista_principal:
+            raise HTTPException(
+                status_code=400,
+                detail="El proponente no tiene representante legal (Paso 3) asignado"
+            )
+
+        # Crear documento temporal
+        temp_dir = Path(tempfile.gettempdir()) / "secop_generados"
+        temp_dir.mkdir(parents=True, exist_ok=True)
+
+        nombre_archivo = f"Formato_1_{perfil.nombre.replace(' ', '_')}.docx"
+        output_path = temp_dir / nombre_archivo
+
+        # Obtener datos del proceso (buscar que contenga el código del proponente)
+        proceso = db.query(ProcesoHtmlDescarga).filter(
+            ProcesoHtmlDescarga.numero_proceso.like(f"{perfil.codigo_proceso}%")
+        ).first()
+
+        entidad = proceso.entidad if proceso else ""
+        direccion_ejecucion = proceso.direccion_ejecucion if proceso else ""
+
+        # Generar carta
+        exito = generar_carta_presentacion(
+            nombre_proponente=perfil.nombre,
+            numero_proceso=perfil.codigo_proceso,
+            objeto_proceso=proceso.titulo if proceso else "",
+            nombre_representante=accionista_principal.nombre,
+            cedula_representante=accionista_principal.cedula,
+            direccion=representante.direccion or "",
+            correo=representante.correo or "",
+            telefono=representante.telefono_fijo or representante.telefono_celular or "",
+            ciudad=representante.ciudad or "",
+            entidad=entidad,
+            direccion_ejecucion=direccion_ejecucion,
+            salida_path=output_path,
+        )
+
+        if not exito:
+            raise HTTPException(
+                status_code=500,
+                detail="Error al generar el documento. Verifica que la plantilla exista."
+            )
+
+        # Retornar archivo descargable
+        return FileResponse(
+            path=output_path,
+            filename=nombre_archivo,
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        print(f"[ERROR] {e}")
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
