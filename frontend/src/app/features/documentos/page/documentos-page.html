@@ -738,6 +738,27 @@
             <p class="mt-1 text-[10px] text-slate-400">Solo procesos pendientes por enviar.</p>
           </div>
 
+          <!-- Selección de lotes -->
+          @if (borrador.codigo_proceso) {
+            <div class="mb-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <label class="mb-3 flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" [(ngModel)]="borrador.presenta_por_lotes"
+                  class="h-4 w-4 rounded border-slate-300 text-blue-600" />
+                <span class="text-sm font-medium text-slate-700">¿Se va a presentar por lotes?</span>
+              </label>
+
+              @if (borrador.presenta_por_lotes) {
+                <div class="mt-3">
+                  <label class="mb-1 block text-xs font-medium text-slate-600">Lotes a los que se presenta</label>
+                  <p class="mb-2 text-xs text-slate-500">Ej: "1 y 2" o "1, 2 y 3" o solo "1"</p>
+                  <input type="text" [(ngModel)]="borrador.lotes_seleccionados"
+                    placeholder="Lote 1 y 2"
+                    class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+                </div>
+              }
+            </div>
+          }
+
           <div class="mb-4">
             <label class="mb-1 block text-xs font-medium text-slate-600">Nombre del proponente</label>
             <input type="text" [(ngModel)]="borrador.nombre"

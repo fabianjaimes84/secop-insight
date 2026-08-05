@@ -265,6 +265,10 @@ class ProponentePerfil(Base):
     # Proceso al que se presenta. Un proceso tiene un solo proponente.
     codigo_proceso = Column(String, default="", index=True)
 
+    # Información de lotes
+    presenta_por_lotes = Column(Boolean, default=False)
+    lotes_seleccionados = Column(String, default="")  # Ej: "Lote 1 y 2" o "Lote 1, 2 y 3"
+
     # Empresa que firma los formatos (representante_empresa_id)
     representante_empresa_id = Column(
         Integer, ForeignKey("empresas.id"), nullable=True

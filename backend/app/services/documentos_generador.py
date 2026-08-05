@@ -76,6 +76,7 @@ def generar_carta_presentacion(
     salida_path: Path,
     entidad: str = "",
     direccion_ejecucion: str = "",
+    lotes: str = "",
 ) -> bool:
     """
     Genera la Carta de Presentación de Oferta con datos específicos.
@@ -123,6 +124,8 @@ def generar_carta_presentacion(
             "«repre_ciudad»": ciudad,
             "«nombre_entidad»": entidad,
             "«dir_entidad»": direccion_ejecucion,
+            "«objeto»": objeto_proceso,
+            "«lote»": lotes,
         }
 
         print(f"[*] Reemplazando {len(reemplazos)} valores...")

@@ -188,6 +188,8 @@ def crear_proponente(
         nombre=datos.nombre.strip(),
         codigo_proceso=datos.codigo_proceso.strip(),
         representante_empresa_id=datos.representante_empresa_id,
+        presenta_por_lotes=datos.presenta_por_lotes,
+        lotes_seleccionados=datos.lotes_seleccionados,
         repre_principal_accionista_id=datos.repre_principal_accionista_id,
         repre_suplente_accionista_id=datos.repre_suplente_accionista_id,
         pers_clave_eval=datos.pers_clave_eval,
@@ -230,6 +232,8 @@ def actualizar_proponente(
     perfil.nombre = datos.nombre.strip()
     perfil.codigo_proceso = datos.codigo_proceso.strip()
     perfil.representante_empresa_id = datos.representante_empresa_id
+    perfil.presenta_por_lotes = datos.presenta_por_lotes
+    perfil.lotes_seleccionados = datos.lotes_seleccionados
     perfil.repre_principal_accionista_id = datos.repre_principal_accionista_id
     perfil.repre_suplente_accionista_id = datos.repre_suplente_accionista_id
     perfil.pers_clave_eval = datos.pers_clave_eval

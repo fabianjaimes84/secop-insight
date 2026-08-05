@@ -28,6 +28,10 @@ class ProponentePerfilEntrada(BaseModel):
 
     representante_empresa_id: int | None = None
 
+    # Información de lotes
+    presenta_por_lotes: bool = False
+    lotes_seleccionados: str = ""
+
     # Representantes que firman (accionistas)
     repre_principal_accionista_id: int | None = None
     repre_suplente_accionista_id: int | None = None
@@ -80,6 +84,8 @@ class ProponentePerfilRespuesta(BaseModel):
     nombre: str
     codigo_proceso: str
     representante_empresa_id: int | None
+    presenta_por_lotes: bool
+    lotes_seleccionados: str
     repre_principal_accionista_id: int | None
     repre_suplente_accionista_id: int | None
     pers_clave_eval: str

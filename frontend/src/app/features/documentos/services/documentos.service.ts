@@ -65,6 +65,10 @@ export interface PerfilProponente {
   codigo_proceso: string;
   representante_empresa_id: number | null;
 
+  // Información de lotes
+  presenta_por_lotes: boolean;
+  lotes_seleccionados: string;
+
   // Representantes que firman (accionistas)
   repre_principal_accionista_id: number | null;
   repre_suplente_accionista_id: number | null;
@@ -271,6 +275,8 @@ export class DocumentosService {
       nombre: '',
       codigo_proceso: '',
       representante_empresa_id: null,
+      presenta_por_lotes: false,
+      lotes_seleccionados: '',
       repre_principal_accionista_id: null,
       repre_suplente_accionista_id: null,
       pers_clave_eval: '',

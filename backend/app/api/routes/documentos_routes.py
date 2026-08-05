@@ -244,7 +244,7 @@ def generar_carta_presentacion_endpoint(
         exito = generar_carta_presentacion(
             nombre_proponente=perfil.nombre,
             numero_proceso=perfil.codigo_proceso,
-            objeto_proceso=proceso.titulo if proceso else "",
+            objeto_proceso=proceso.descripcion if proceso else "",
             nombre_representante=accionista_principal.nombre,
             cedula_representante=accionista_principal.cedula,
             direccion=representante.direccion or "",
@@ -253,6 +253,7 @@ def generar_carta_presentacion_endpoint(
             ciudad=representante.ciudad or "",
             entidad=entidad,
             direccion_ejecucion=direccion_ejecucion,
+            lotes=perfil.lotes_seleccionados,
             salida_path=output_path,
         )
 
