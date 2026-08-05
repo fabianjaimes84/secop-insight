@@ -651,8 +651,13 @@
             <label class="mb-1 block text-xs font-medium text-slate-600">Nombre del proponente</label>
             <input type="text" [(ngModel)]="borrador.nombre"
               placeholder="ej. UNION TEMPORAL VIALTEK 16"
+              [class.border-red-500]="proponenteNombreDuplicado()"
               class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
-            <p class="mt-1 text-[10px] text-slate-400">Cada nombre se usa una sola vez.</p>
+            @if (proponenteNombreDuplicado()) {
+              <p class="mt-1 text-[10px] text-red-600 font-medium">⚠ Ese proponente ya ha sido utilizado.</p>
+            } @else {
+              <p class="mt-1 text-[10px] text-slate-400">Cada nombre se usa una sola vez.</p>
+            }
           </div>
 
           <div class="mb-4 rounded-lg border border-slate-200 p-3">
@@ -668,7 +673,7 @@
             <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
               <div>
                 <label class="mb-1 block text-[10px] text-slate-500">Cierre de la oferta</label>
-                <input type="text" [value]="borrador.fecha_cierre"
+                <input type="text" [value]="formatearFechaCierre()"
                   disabled
                   class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-500" />
               </div>
@@ -698,7 +703,7 @@
 
             <div>
               <p class="text-[10px] font-semibold uppercase text-slate-400">Fechas</p>
-              <p class="text-xs text-slate-600">Cierre de oferta: <span class="font-medium">{{ borrador.fecha_cierre || '—' }}</span></p>
+              <p class="text-xs text-slate-600">Cierre de oferta: <span class="font-medium">{{ formatearFechaCierre() }}</span></p>
               <p class="text-xs text-slate-600">Carta de gerencia: <span class="font-medium">{{ borrador.fecha_carta_gerencia || '—' }}</span></p>
             </div>
 

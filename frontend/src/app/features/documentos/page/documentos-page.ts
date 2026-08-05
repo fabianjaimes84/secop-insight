@@ -508,11 +508,44 @@ export class DocumentosPage implements OnInit {
     });
   }
 
+  proponenteNombreDuplicado(): boolean {
+    if (!this.borrador?.nombre.trim()) return false;
+    return this.proponentes.some(
+      (p) => p.nombre.toLowerCase() === this.borrador?.nombre.toLowerCase() && p.id !== this.borrador?.id
+    );
+  }
+
+  formatearFechaCierre(): string {
+    if (!this.borrador?.fecha_cierre) return '—';
+
+    // Intenta parsear si viene en formato "DD/MM/YYYY HH:MM" o similar
+    const patron = /(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})/;
+    const match = this.borrador.fecha_cierre.match(patron);
+
+    if (match) {
+      const [, dia, mes, año] = match;
+      const fecha = new Date(Number(año), Number(mes) - 1, Number(dia));
+      return fecha.toLocaleDateString('es-CO', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      });
+    }
+
+    // Si no contiene patrón de fecha, devolver como está
+    return this.borrador.fecha_cierre;
+  }
+
   guardarProponente(): void {
     if (!this.borrador) return;
 
     if (!this.borrador.nombre.trim()) {
       this.error = 'Ponle un nombre al proponente.';
+      return;
+    }
+
+    if (this.proponenteNombreDuplicado()) {
+      this.error = 'Ese proponente ya ha sido utilizado. Elige otro nombre.';
       return;
     }
 
