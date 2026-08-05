@@ -163,9 +163,18 @@ export class DocumentosPage implements OnInit {
   agregarAccionista(): void {
     if (!this.empresaEnEdicion) return;
     const orden = this.empresaEnEdicion.accionistas.length + 1;
-    this.empresaEnEdicion.accionistas.push(
-      this.documentosService.accionistaVacio(orden)
-    );
+    const nuevoAccionista = this.documentosService.accionistaVacio(orden);
+
+    // Calcular automáticamente el porcentaje restante para personas jurídicas
+    if (this.empresaEnEdicion.es_persona_juridica && this.empresaEnEdicion.accionistas.length > 0) {
+      const sumaExistente = this.sumaAccionistas;
+      const restante = 100 - sumaExistente;
+      if (restante > 0) {
+        nuevoAccionista.porcentaje = this.normalizarPorcentaje(`${restante}`);
+      }
+    }
+
+    this.empresaEnEdicion.accionistas.push(nuevoAccionista);
   }
 
   quitarAccionista(indice: number): void {
@@ -191,6 +200,11 @@ export class DocumentosPage implements OnInit {
     if (!this.empresaEnEdicion.es_persona_juridica) {
       this.empresaEnEdicion.accionistas.forEach((a) => {
         a.porcentaje = '100%';
+      });
+    } else {
+      // Para personas jurídicas, normalizar porcentajes
+      this.empresaEnEdicion.accionistas.forEach((a) => {
+        a.porcentaje = this.normalizarPorcentaje(a.porcentaje);
       });
     }
 
@@ -261,10 +275,14 @@ export class DocumentosPage implements OnInit {
   siguientePaso(): void {
     if (!this.borrador) return;
 
-    // Paso 1: Solo validar que se haya seleccionado un tipo
+    // Paso 1: Validar tipo y que haya procesos disponibles
     if (this.paso === 1) {
       if (!this.borrador.tipo) {
         this.error = 'Selecciona un tipo de proponente.';
+        return;
+      }
+      if (!this.procesosPendientes().length) {
+        this.error = 'No hay procesos disponibles. Por favor, ve a Seguimiento y actualiza el estado del proceso a "Presentar oferta".';
         return;
       }
     }
@@ -293,14 +311,6 @@ export class DocumentosPage implements OnInit {
       }
       if (this.borrador.repre_principal_accionista_id === this.borrador.repre_suplente_accionista_id) {
         this.error = 'El representante principal y suplente deben ser personas diferentes.';
-        return;
-      }
-    }
-
-    // Paso 4: Validar que haya procesos disponibles antes de ir al paso 5
-    if (this.paso === 4) {
-      if (!this.procesosPendientes().length) {
-        this.error = 'No hay procesos disponibles. Por favor, ve a Seguimiento y actualiza el estado del proceso a "Presentar oferta".';
         return;
       }
     }
@@ -348,7 +358,7 @@ export class DocumentosPage implements OnInit {
       const sumaExistente = this.sumaCompromisos;
       const restante = 100 - sumaExistente;
       if (restante > 0) {
-        nuevoIntegrante.compromiso = `${restante}%`;
+        nuevoIntegrante.compromiso = this.normalizarPorcentaje(`${restante}`);
       }
     }
 
@@ -390,6 +400,19 @@ export class DocumentosPage implements OnInit {
       const numero = parseFloat((i.compromiso || '').replace('%', '').trim());
       return total + (isNaN(numero) ? 0 : numero);
     }, 0);
+  }
+
+  normalizarPorcentaje(valor: string): string {
+    if (!valor) return '';
+    const numero = valor.replace('%', '').trim();
+    if (!numero) return '';
+    return `${numero}%`;
+  }
+
+  alTerminarDeIngresarPorcentaje(objeto: any, campo: string): void {
+    if (objeto && campo) {
+      objeto[campo] = this.normalizarPorcentaje(objeto[campo]);
+    }
   }
 
   empresasElegidas(): Empresa[] {
@@ -492,6 +515,11 @@ export class DocumentosPage implements OnInit {
       this.error = 'Ponle un nombre al proponente.';
       return;
     }
+
+    // Normalizar porcentajes de integrantes antes de guardar
+    this.borrador.integrantes.forEach((integrante) => {
+      integrante.compromiso = this.normalizarPorcentaje(integrante.compromiso);
+    });
 
     const peticion = this.borrador.id
       ? this.documentosService.actualizarProponente(this.borrador.id, this.borrador)
