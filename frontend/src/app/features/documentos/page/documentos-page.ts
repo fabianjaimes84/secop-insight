@@ -516,11 +516,29 @@ export class DocumentosPage implements OnInit {
   }
 
   formatearFechaCierre(): string {
-    if (!this.borrador?.fecha_cierre) return '—';
+    if (!this.borrador?.codigo_proceso) return '—';
 
-    // Intenta parsear si viene en formato "DD/MM/YYYY HH:MM" o similar
+    // Buscar el proceso en la lista de procesos cargados
+    const proceso = this.procesos.find(
+      (p) => this.htmlDescargaService.extraerCodigoCarpeta(p.numero_proceso) ===
+             this.htmlDescargaService.extraerCodigoCarpeta(this.borrador?.codigo_proceso || '')
+    );
+
+    if (!proceso) return this.borrador?.fecha_cierre || '—';
+
+    // Buscar el evento de "Presentación de Ofertas" en el cronograma
+    const eventoPresentacion = (proceso.cronograma || []).find((e: any) =>
+      e.evento?.toLowerCase().includes('presentación') ||
+      e.evento?.toLowerCase().includes('oferta')
+    );
+
+    if (!eventoPresentacion || !eventoPresentacion.fecha) {
+      return this.borrador?.fecha_cierre || '—';
+    }
+
+    // Parsear la fecha del cronograma (formato: DD/MM/YYYY HH:MM)
     const patron = /(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})/;
-    const match = this.borrador.fecha_cierre.match(patron);
+    const match = eventoPresentacion.fecha.match(patron);
 
     if (match) {
       const [, dia, mes, año] = match;
@@ -532,8 +550,7 @@ export class DocumentosPage implements OnInit {
       });
     }
 
-    // Si no contiene patrón de fecha, devolver como está
-    return this.borrador.fecha_cierre;
+    return this.borrador?.fecha_cierre || '—';
   }
 
   guardarProponente(): void {
