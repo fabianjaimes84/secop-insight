@@ -7,6 +7,7 @@ import { FavoritosService, FavoritoGuardado } from '../../../core/services/favor
 import { HtmlDescargaService } from '../../search/services/html-descarga.service';
 import { ExtensionService, ProgresoCola } from '../../../core/services/extension.service';
 import { ProcessDetail } from '../../search/detail/process-detail';
+import { DocumentosService } from '../../documentos/services/documentos.service';
 
 /** Un favorito con el dato de última descarga traído del backend. */
 interface FavoritoConEstado {
@@ -40,10 +41,13 @@ export class SeguimientoPage implements OnInit {
   avisoExtension: string | null = null;
   progreso: ProgresoCola = { restantes: 0, total: 0 };
 
+  proponentes: any[] = [];
+
   constructor(
     private favoritosService: FavoritosService,
     private htmlDescargaService: HtmlDescargaService,
-    private extensionService: ExtensionService
+    private extensionService: ExtensionService,
+    private documentosService: DocumentosService
   ) {}
 
   /**
@@ -88,6 +92,12 @@ export class SeguimientoPage implements OnInit {
     this.extensionService.progreso$.subscribe(
       (progreso) => (this.progreso = progreso)
     );
+
+    // Cargar lista de proponentes para verificar si un proceso tiene oferta
+    this.documentosService.listarProponentes().subscribe({
+      next: (proponentes) => (this.proponentes = proponentes),
+      error: () => (this.proponentes = []),
+    });
 
     this.grupos$ = combineLatest([
       this.favoritosService.favoritos$,
@@ -223,6 +233,15 @@ export class SeguimientoPage implements OnInit {
       minute: '2-digit',
       hour12: true,
     });
+  }
+
+  tieneProponente(proceso: Proceso): boolean {
+    const codigoProces = this.htmlDescargaService.extraerCodigoCarpeta(
+      proceso.referencia_del_proceso
+    );
+    return this.proponentes.some(
+      (p) => this.htmlDescargaService.extraerCodigoCarpeta(p.codigo_proceso) === codigoProces
+    );
   }
 
   quitar(favorito: FavoritoGuardado, evento: Event): void {

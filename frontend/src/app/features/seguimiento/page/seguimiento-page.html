@@ -115,10 +115,12 @@
                       (click)="openDetail(item.favorito.proceso)">
                       VER
                     </button>
-                    <button type="button" class="text-slate-400 transition hover:text-red-600"
-                      title="Quitar de Seguimiento" (click)="quitar(item.favorito, $event)">
-                      <i class="fa-solid fa-trash-can text-xs"></i>
-                    </button>
+                    @if (!tieneProponente(item.favorito.proceso)) {
+                      <button type="button" class="text-slate-400 transition hover:text-red-600"
+                        title="Quitar de Seguimiento" (click)="quitar(item.favorito, $event)">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                      </button>
+                    }
                   </div>
                 </div>
 
@@ -228,10 +230,12 @@
                       (click)="openDetail(item.favorito.proceso)">
                       VER
                     </button>
-                    <button type="button" class="text-slate-400 transition hover:text-red-600"
-                      title="Quitar de Seguimiento" (click)="quitar(item.favorito, $event)">
-                      <i class="fa-solid fa-trash-can text-xs"></i>
-                    </button>
+                    @if (!tieneProponente(item.favorito.proceso)) {
+                      <button type="button" class="text-slate-400 transition hover:text-red-600"
+                        title="Quitar de Seguimiento" (click)="quitar(item.favorito, $event)">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                      </button>
+                    }
                   </div>
                 </div>
 
