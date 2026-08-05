@@ -6,7 +6,7 @@ from pathlib import Path
 import tempfile
 
 from app.db.base import obtener_db
-from app.db.models import ProcesoHtmlDescarga, ProponentePerfil
+from app.db.models import ProcesoHtmlDescarga, ProponentePerfil, AccionistaEmpresa
 from app.services.catalogo_formatos import formatos_aplicables
 from app.services.documentos_generador import generar_carta_presentacion
 
@@ -240,6 +240,65 @@ def generar_carta_presentacion_endpoint(
         entidad = proceso.entidad if proceso else ""
         direccion_ejecucion = proceso.direccion_ejecucion if proceso else ""
 
+        # Obtener accionistas de las empresas jurídicas que integran el proponente
+        accionistas_data = []
+        representante_legal_empresa = None
+        if representante:
+            # Obtener el representante legal de la empresa para datos de contacto
+            accionistas_rep = db.query(AccionistaEmpresa).filter(
+                AccionistaEmpresa.empresa_id == representante.id
+            ).order_by(AccionistaEmpresa.orden).all()
+
+            for accionista in accionistas_rep:
+                if accionista.es_representante_legal:
+                    representante_legal_empresa = accionista
+                    break
+
+        # Buscar empresas jurídicas entre los integrantes del proponente
+        # y obtener sus accionistas
+        for integrante in perfil.integrantes:
+            if integrante.empresa and integrante.empresa.es_persona_juridica:
+                # Esta es una empresa jurídica - obtener sus accionistas
+                accionistas_empresa = db.query(AccionistaEmpresa).filter(
+                    AccionistaEmpresa.empresa_id == integrante.empresa_id
+                ).order_by(AccionistaEmpresa.orden).limit(2).all()
+
+                # Agregar los accionistas de esta empresa jurídica
+                for accionista in accionistas_empresa:
+                    accionistas_data.append({
+                        "nombre": accionista.nombre,
+                        "cedula": accionista.cedula,
+                        "porcentaje": accionista.porcentaje or "",
+                    })
+
+        # Obtener integrante para datos de grupo empresarial
+        integrante_representante = None
+        for integrante in perfil.integrantes:
+            if integrante.empresa_id == perfil.representante_empresa_id:
+                integrante_representante = integrante
+                break
+
+        # Usar datos del representante legal de la empresa si están disponibles
+        # Si no, usar datos de la empresa como fallback
+        direccion_contacto = ""
+        correo_contacto = ""
+        telefono_contacto = ""
+        ciudad_contacto = ""
+        matricula_profesional = ""
+
+        if representante_legal_empresa:
+            direccion_contacto = representante_legal_empresa.direccion or representante.direccion or ""
+            correo_contacto = representante_legal_empresa.email or representante.correo or ""
+            telefono_contacto = representante_legal_empresa.telefono or representante.telefono_fijo or representante.telefono_celular or ""
+            ciudad_contacto = representante.ciudad or ""
+            matricula_profesional = representante_legal_empresa.matricula_profesional or ""
+        else:
+            # Fallback: usar datos de la empresa
+            direccion_contacto = representante.direccion or ""
+            correo_contacto = representante.correo or ""
+            telefono_contacto = representante.telefono_fijo or representante.telefono_celular or ""
+            ciudad_contacto = representante.ciudad or ""
+
         # Generar carta
         exito = generar_carta_presentacion(
             nombre_proponente=perfil.nombre,
@@ -247,10 +306,16 @@ def generar_carta_presentacion_endpoint(
             objeto_proceso=proceso.descripcion if proceso else "",
             nombre_representante=accionista_principal.nombre,
             cedula_representante=accionista_principal.cedula,
-            direccion=representante.direccion or "",
-            correo=representante.correo or "",
-            telefono=representante.telefono_fijo or representante.telefono_celular or "",
-            ciudad=representante.ciudad or "",
+            direccion=direccion_contacto,
+            correo=correo_contacto,
+            telefono=telefono_contacto,
+            ciudad=ciudad_contacto,
+            matricula_profesional=matricula_profesional,
+            tipo_proponente=perfil.tipo,
+            pertenece_grupo=integrante_representante.pertenece_grupo if integrante_representante else False,
+            tipo_grupo=integrante_representante.tipo_grupo_empresarial if integrante_representante else "",
+            cotiza_bolsa=integrante_representante.cotiza_bolsa if integrante_representante else False,
+            accionistas=accionistas_data,
             entidad=entidad,
             direccion_ejecucion=direccion_ejecucion,
             lotes=perfil.lotes_seleccionados,

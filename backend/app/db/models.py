@@ -234,6 +234,15 @@ class AccionistaEmpresa(Base):
     porcentaje = Column(String, default="")
     es_representante_legal = Column(Boolean, default=False)
 
+    # Datos de contacto del accionista
+    direccion = Column(String, default="")
+    email = Column(String, default="")
+    telefono = Column(String, default="")
+
+    # Matrícula profesional
+    tiene_matricula_profesional = Column(Boolean, default=False)
+    matricula_profesional = Column(String, default="")
+
     empresa = relationship("Empresa", back_populates="accionistas")
     participaciones_como_representante_principal = relationship(
         "ProponentePerfil",

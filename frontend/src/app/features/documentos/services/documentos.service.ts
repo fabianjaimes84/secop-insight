@@ -19,6 +19,15 @@ export interface Accionista {
   orden: number;
   porcentaje: string;
   es_representante_legal: boolean;
+
+  // Datos de contacto
+  direccion: string;
+  email: string;
+  telefono: string;
+
+  // Matrícula profesional
+  tiene_matricula_profesional: boolean;
+  matricula_profesional: string;
 }
 
 export interface Empresa {
@@ -251,6 +260,11 @@ export class DocumentosService {
       orden,
       porcentaje: '',
       es_representante_legal: false,
+      direccion: '',
+      email: '',
+      telefono: '',
+      tiene_matricula_profesional: false,
+      matricula_profesional: '',
     };
   }
 

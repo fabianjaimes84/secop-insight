@@ -300,27 +300,56 @@
           </div>
 
           @for (accionista of empresaEnEdicion.accionistas; track $index) {
-            <div class="mb-2 grid grid-cols-1 gap-2 md:grid-cols-[1fr_auto_auto_auto]">
-              <input type="text" [(ngModel)]="accionista.nombre" placeholder="Nombre"
-                class="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
-              <input type="text" [(ngModel)]="accionista.cedula" placeholder="Cédula"
-                class="rounded-lg border border-slate-300 px-3 py-2 text-sm md:w-40" />
+            <div class="mb-4 rounded-lg border border-slate-200 bg-slate-50 p-3">
+              <!-- Primera fila: Nombre, Cédula, Porcentaje -->
+              <div class="mb-3 grid grid-cols-1 gap-2 md:grid-cols-[1fr_auto_auto_auto]">
+                <input type="text" [(ngModel)]="accionista.nombre" placeholder="Nombre"
+                  class="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+                <input type="text" [(ngModel)]="accionista.cedula" placeholder="Cédula"
+                  class="rounded-lg border border-slate-300 px-3 py-2 text-sm md:w-40" />
 
-              @if (!empresaEnEdicion.es_persona_juridica) {
-                <!-- Persona natural: 100% fijo -->
-                <div class="rounded-lg border border-slate-300 bg-slate-100 px-3 py-2 text-sm md:w-20 flex items-center">
-                  <span class="text-slate-700 font-medium">100%</span>
+                @if (!empresaEnEdicion.es_persona_juridica) {
+                  <!-- Persona natural: 100% fijo -->
+                  <div class="rounded-lg border border-slate-300 bg-slate-100 px-3 py-2 text-sm md:w-20 flex items-center">
+                    <span class="text-slate-700 font-medium">100%</span>
+                  </div>
+                } @else {
+                  <!-- Persona jurídica: editable -->
+                  <input type="text" [(ngModel)]="accionista.porcentaje" placeholder="%"
+                    (blur)="alTerminarDeIngresarPorcentaje(accionista, 'porcentaje')"
+                    class="rounded-lg border border-slate-300 px-3 py-2 text-sm md:w-20" />
+                }
+
+                <button type="button" class="px-2 text-slate-400 hover:text-red-600" (click)="quitarAccionista($index)">
+                  <i class="fa-solid fa-trash-can text-xs"></i>
+                </button>
+              </div>
+
+              <!-- Segunda fila: Datos de contacto -->
+              <div class="mb-3 grid grid-cols-1 gap-2 md:grid-cols-3">
+                <input type="text" [(ngModel)]="accionista.direccion" placeholder="Dirección"
+                  class="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+                <input type="email" [(ngModel)]="accionista.email" placeholder="Email"
+                  class="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+                <input type="tel" [(ngModel)]="accionista.telefono" placeholder="Teléfono"
+                  class="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+              </div>
+
+              <!-- Tercera fila: Matrícula profesional -->
+              <div class="mb-2">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" [(ngModel)]="accionista.tiene_matricula_profesional"
+                    class="h-4 w-4 rounded border-slate-300 text-blue-600" />
+                  <span class="text-sm text-slate-700">¿Tiene matrícula profesional?</span>
+                </label>
+              </div>
+
+              @if (accionista.tiene_matricula_profesional) {
+                <div>
+                  <input type="text" [(ngModel)]="accionista.matricula_profesional" placeholder="Matrícula profesional"
+                    class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
                 </div>
-              } @else {
-                <!-- Persona jurídica: editable -->
-                <input type="text" [(ngModel)]="accionista.porcentaje" placeholder="%"
-                  (blur)="alTerminarDeIngresarPorcentaje(accionista, 'porcentaje')"
-                  class="rounded-lg border border-slate-300 px-3 py-2 text-sm md:w-20" />
               }
-
-              <button type="button" class="px-2 text-slate-400 hover:text-red-600" (click)="quitarAccionista($index)">
-                <i class="fa-solid fa-trash-can text-xs"></i>
-              </button>
             </div>
           }
 
@@ -743,6 +772,7 @@
             <div class="mb-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
               <label class="mb-3 flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" [(ngModel)]="borrador.presenta_por_lotes"
+                  (ngModelChange)="onPresentaPorLotesChange($event)"
                   class="h-4 w-4 rounded border-slate-300 text-blue-600" />
                 <span class="text-sm font-medium text-slate-700">¿Se va a presentar por lotes?</span>
               </label>

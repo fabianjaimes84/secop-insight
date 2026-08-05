@@ -19,6 +19,7 @@ def reemplazar_texto_en_documento(doc: Document, reemplazos: dict) -> None:
     """
     Reemplaza texto en párrafos y tablas del documento.
     Usa XML manipulation para garantizar que funcione correctamente.
+    Maneja también tablas anidadas.
 
     Args:
         doc: Documento Word
@@ -49,18 +50,27 @@ def reemplazar_texto_en_documento(doc: Document, reemplazos: dict) -> None:
                     # Crear un nuevo run con el texto reemplazado
                     new_run = para.add_run(texto_nuevo_completo)
 
-                    print(f"    → Reemplazó: '{original}' → '{nuevo[:30]}...'")
+                    print(f"    Reemplazo: '{original}' = '{nuevo[:30]}...'")
 
-    # Reemplazar en párrafos
+    # Reemplazar en párrafos principales
     for para in doc.paragraphs:
         reemplazar_en_parrafo(para, reemplazos)
 
-    # Reemplazar en tablas
-    for table in doc.tables:
+    # Reemplazar en tablas (incluyendo anidadas)
+    def procesar_tabla(table):
         for row in table.rows:
             for cell in row.cells:
+                # Reemplazar en párrafos de la celda
                 for para in cell.paragraphs:
                     reemplazar_en_parrafo(para, reemplazos)
+
+                # Procesar tablas anidadas dentro de la celda
+                for tabla_anidada in cell.tables:
+                    procesar_tabla(tabla_anidada)
+
+    # Procesar todas las tablas del documento
+    for table in doc.tables:
+        procesar_tabla(table)
 
 
 def generar_carta_presentacion(
@@ -74,9 +84,15 @@ def generar_carta_presentacion(
     telefono: str,
     ciudad: str,
     salida_path: Path,
+    tipo_proponente: str = "union_temporal",
+    pertenece_grupo: bool = False,
+    tipo_grupo: str = "",
+    cotiza_bolsa: bool = False,
+    accionistas: list = None,
     entidad: str = "",
     direccion_ejecucion: str = "",
     lotes: str = "",
+    matricula_profesional: str = "",
 ) -> bool:
     """
     Genera la Carta de Presentación de Oferta con datos específicos.
@@ -112,9 +128,39 @@ def generar_carta_presentacion(
         doc = Document(plantilla_path)
         print(f"[OK] Plantilla cargada")
 
+        # Limpiar número de proceso (remover paréntesis)
+        numero_proceso_limpio = numero_proceso.split(" (")[0] if " (" in numero_proceso else numero_proceso
+
+        # Marcar tipo de proponente con X
+        marca_natural = "X" if tipo_proponente == "natural" else ""
+        marca_union = "X" if tipo_proponente == "union_temporal" else ""
+        marca_consorcio = "X" if tipo_proponente == "consorcio" else ""
+
+        # Marcar grupo empresarial y cotiza en bolsa
+        marca_grupo = "X" if pertenece_grupo else ""
+        marca_bolsa = "X" if cotiza_bolsa else ""
+
+        # Obtener datos de accionistas (máximo 2)
+        accionista_1_nombre = ""
+        accionista_1_porcentaje = ""
+        accionista_1_cedula = ""
+        accionista_2_nombre = ""
+        accionista_2_porcentaje = ""
+        accionista_2_cedula = ""
+
+        if accionistas:
+            if len(accionistas) > 0:
+                accionista_1_nombre = accionistas[0].get("nombre", "")
+                accionista_1_porcentaje = accionistas[0].get("porcentaje", "")
+                accionista_1_cedula = accionistas[0].get("cedula", "")
+            if len(accionistas) > 1:
+                accionista_2_nombre = accionistas[1].get("nombre", "")
+                accionista_2_porcentaje = accionistas[1].get("porcentaje", "")
+                accionista_2_cedula = accionistas[1].get("cedula", "")
+
         # Definir reemplazos usando los placeholders del documento
         reemplazos = {
-            "«no_proceso»": numero_proceso,
+            "«no_proceso»": numero_proceso_limpio,
             "«nom_proponente»": nombre_proponente,
             "«nom_pers_nat__o_rp_propo_1»": nombre_representante,
             "«repre_cedula»": cedula_representante,
@@ -122,10 +168,28 @@ def generar_carta_presentacion(
             "«repre_email»": correo,
             "«repre_tele»": telefono,
             "«repre_ciudad»": ciudad,
+            "«repre_mat_profe»": matricula_profesional,
             "«nombre_entidad»": entidad,
             "«dir_entidad»": direccion_ejecucion,
             "«objeto»": objeto_proceso,
             "«lote»": lotes,
+            "«propo_per_natu»": marca_natural,
+            "«propo_union»": marca_union,
+            "«propo_conso»": marca_consorcio,
+            "«grupo_m»": marca_grupo,
+            "«cot_bolsa»": marca_bolsa,
+            "«nom_o_raz_soc_1»": accionista_1_nombre,
+            "«nom_o_raz_soc_2»": accionista_2_nombre,
+            "«porcen_partici_1»": accionista_1_porcentaje,
+            "«cedula_accion_1»": accionista_1_cedula,
+            "«nom_accion_1»": accionista_1_nombre,
+            "«porcen_partici_2»": accionista_2_porcentaje,
+            "«cedula_accion_2»": accionista_2_cedula,
+            "«nom_accion_2»": accionista_2_nombre,
+            "«contac_nombre»": nombre_representante,
+            "«contac_dir_ciudad»": direccion,
+            "«contac_tele»": telefono,
+            "«contac_email»": correo,
         }
 
         print(f"[*] Reemplazando {len(reemplazos)} valores...")

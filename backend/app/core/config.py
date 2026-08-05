@@ -39,7 +39,7 @@ settings = Settings()
 # Debug: Imprimir en consola al iniciar si se cargó el token (Solo para desarrollo)
 if settings.SOCRATA_APP_TOKEN:
     print(
-        f"✅ Token Socrata cargado correctamente (longitud: {len(settings.SOCRATA_APP_TOKEN)})"
+        f"[OK] Token Socrata cargado correctamente (longitud: {len(settings.SOCRATA_APP_TOKEN)})"
     )
 else:
     print("⚠️ ADVERTENCIA: No se encontró SOCRATA_APP_TOKEN en el .env")

@@ -14,6 +14,15 @@ class AccionistaEntrada(BaseModel):
     porcentaje: str = ""
     es_representante_legal: bool = False
 
+    # Datos de contacto del accionista
+    direccion: str = ""
+    email: str = ""
+    telefono: str = ""
+
+    # Matrícula profesional
+    tiene_matricula_profesional: bool = False
+    matricula_profesional: str = ""
+
 
 class AccionistaRespuesta(AccionistaEntrada):
     model_config = ConfigDict(from_attributes=True)

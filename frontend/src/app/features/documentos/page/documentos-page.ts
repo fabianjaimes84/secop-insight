@@ -533,6 +533,15 @@ export class DocumentosPage implements OnInit {
     return this.borrador.fecha_cierre;
   }
 
+  onPresentaPorLotesChange(value: boolean): void {
+    if (!this.borrador) return;
+
+    // Si se desactiva el checkbox, limpiar el campo de lotes
+    if (!value) {
+      this.borrador.lotes_seleccionados = '';
+    }
+  }
+
   guardarProponente(): void {
     if (!this.borrador) return;
 
