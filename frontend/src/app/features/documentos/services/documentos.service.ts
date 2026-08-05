@@ -48,10 +48,11 @@ export interface IntegranteProponente {
   compromiso: string;
   es_lider: boolean;
 
-  pertenece_grupo: boolean;
-  cotiza_bolsa: boolean;
-  acredita_mujeres: boolean;
-  acredita_discapacidad: boolean;
+  pertenece_grupo: boolean | null;
+  tipo_grupo_empresarial: string;
+  cotiza_bolsa: boolean | null;
+  acredita_mujeres: boolean | null;
+  acredita_discapacidad: boolean | null;
   acredita_mipyme: boolean;
 
   empresa?: Empresa;
@@ -248,10 +249,11 @@ export class DocumentosService {
       orden,
       compromiso: '',
       es_lider: esLider,
-      pertenece_grupo: false,
-      cotiza_bolsa: false,
-      acredita_mujeres: false,
-      acredita_discapacidad: false,
+      pertenece_grupo: null,
+      tipo_grupo_empresarial: '',
+      cotiza_bolsa: null,
+      acredita_mujeres: null,
+      acredita_discapacidad: null,
       acredita_mipyme: false,
     };
   }

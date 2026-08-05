@@ -516,41 +516,21 @@ export class DocumentosPage implements OnInit {
   }
 
   formatearFechaCierre(): string {
-    if (!this.borrador?.codigo_proceso) return '—';
+    if (!this.borrador?.fecha_cierre) return '—';
 
-    // Buscar el proceso en la lista de procesos cargados
-    const proceso = this.procesos.find(
-      (p) => this.htmlDescargaService.extraerCodigoCarpeta(p.numero_proceso) ===
-             this.htmlDescargaService.extraerCodigoCarpeta(this.borrador?.codigo_proceso || '')
-    );
+    // Patrón para detectar fecha real (DD/MM/YYYY HH:MM)
+    const patronFecha = /(\d{1,2})\/(\d{1,2})\/(\d{4})/;
+    const match = this.borrador.fecha_cierre.match(patronFecha);
 
-    if (!proceso) return this.borrador?.fecha_cierre || '—';
-
-    // Buscar el evento de "Presentación de Ofertas" en el cronograma
-    const eventoPresentacion = (proceso.cronograma || []).find((e: any) =>
-      e.evento?.toLowerCase().includes('presentación') ||
-      e.evento?.toLowerCase().includes('oferta')
-    );
-
-    if (!eventoPresentacion || !eventoPresentacion.fecha) {
-      return this.borrador?.fecha_cierre || '—';
-    }
-
-    // Parsear la fecha del cronograma (formato: DD/MM/YYYY HH:MM)
-    const patron = /(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})/;
-    const match = eventoPresentacion.fecha.match(patron);
-
+    // Si contiene una fecha real, formatearla como DD/MM/YYYY
     if (match) {
-      const [, dia, mes, año] = match;
-      const fecha = new Date(Number(año), Number(mes) - 1, Number(dia));
-      return fecha.toLocaleDateString('es-CO', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
-      });
+      const [fechaCompleta, dia, mes, año] = match;
+      // Retornar en formato DD/MM/YYYY con ceros a la izquierda
+      return `${String(dia).padStart(2, '0')}/${String(mes).padStart(2, '0')}/${año}`;
     }
 
-    return this.borrador?.fecha_cierre || '—';
+    // Si no es una fecha real (ej: "5 días para terminar"), retornar como está
+    return this.borrador.fecha_cierre;
   }
 
   guardarProponente(): void {

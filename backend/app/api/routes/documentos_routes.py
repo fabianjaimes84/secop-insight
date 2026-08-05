@@ -73,6 +73,7 @@ def obtener_fechas_proceso(codigo_proceso: str, db: Session = Depends(obtener_db
         evento_cierre.zona_horaria
     )
 
+    fecha_cierre_formateada = ""
     fecha_carta = ""
     if coincidencia:
         dia, mes, anio, horas12, minutos, segundos, ampm = coincidencia.groups()
@@ -87,13 +88,14 @@ def obtener_fechas_proceso(codigo_proceso: str, db: Session = Depends(obtener_db
             fecha_cierre_dt = datetime(
                 int(anio), int(mes), int(dia), horas, int(minutos), int(segundos or 0)
             )
+            fecha_cierre_formateada = fecha_cierre_dt.strftime("%d/%m/%Y %H:%M")
             fecha_carta_dt = fecha_cierre_dt - timedelta(days=1)
             fecha_carta = fecha_carta_dt.strftime("%d/%m/%Y")
         except ValueError:
-            pass
+            fecha_cierre_formateada = evento_cierre.fecha
 
     return FechasProceso(
-        fecha_cierre=evento_cierre.fecha,
+        fecha_cierre=fecha_cierre_formateada or evento_cierre.fecha,
         zona_cierre=evento_cierre.zona_horaria,
         fecha_carta_gerencia=fecha_carta,
     )

@@ -343,6 +343,7 @@ class IntegranteProponente(Base):
     # Estas marcas dependen de la empresa Y de la oferta concreta, así
     # que se preguntan aquí (por integrante), no en el catálogo de empresas.
     pertenece_grupo = Column(Boolean, default=False)
+    tipo_grupo_empresarial = Column(String, default="")  # matriz, subsidiaria, filial, subordinada, otro
     cotiza_bolsa = Column(Boolean, default=False)
 
     # Criterios que este integrante acredita PARA ESTA oferta.

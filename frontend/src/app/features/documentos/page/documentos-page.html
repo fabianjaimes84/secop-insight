@@ -447,6 +447,8 @@
 
         <!-- PASO 2: EMPRESAS Y ACREDITACIONES -->
         @if (paso === 2) {
+          <h2 class="mb-4 text-lg font-bold text-slate-800">Formulario Uno</h2>
+
           <div class="mb-3 flex items-center justify-between">
             <div>
               <p class="text-sm font-medium text-slate-700">
@@ -482,6 +484,72 @@
                     class="rounded-lg border border-slate-300 px-3 py-2 text-sm md:w-32" />
                 }
               </div>
+
+              <!-- Grupo Empresarial -->
+              <div class="mt-3">
+                <label class="mb-1 block text-xs font-medium text-slate-600">¿Está en grupo empresarial?</label>
+                <select [(ngModel)]="integrante.pertenece_grupo"
+                  class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                  <option [ngValue]="null">-- Seleccionar --</option>
+                  <option [ngValue]="true">Sí</option>
+                  <option [ngValue]="false">No</option>
+                </select>
+              </div>
+
+              <!-- Tipo de relación (aparece solo si pertenece_grupo === true) -->
+              @if (integrante.pertenece_grupo === true) {
+                <div class="mt-3">
+                  <label class="mb-1 block text-xs font-medium text-slate-600">Tipo de relación</label>
+                  <select [(ngModel)]="integrante.tipo_grupo_empresarial"
+                    class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                    <option value="">-- Seleccionar --</option>
+                    <option value="matriz">Matriz</option>
+                    <option value="subsidiaria">Subsidiaria</option>
+                    <option value="filial">Filial</option>
+                    <option value="subordinada">Subordinada</option>
+                    <option value="otro">Otro</option>
+                  </select>
+                </div>
+              }
+
+              <!-- Cotiza en Bolsa (aparece solo si pertenece_grupo fue respondido y tipo_grupo fue seleccionado si es Sí) -->
+              @if (integrante.pertenece_grupo !== null && (integrante.pertenece_grupo === false || integrante.tipo_grupo_empresarial !== '')) {
+                <div class="mt-3">
+                  <label class="mb-1 block text-xs font-medium text-slate-600">¿Cotiza en bolsa?</label>
+                  <select [(ngModel)]="integrante.cotiza_bolsa"
+                    class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                    <option [ngValue]="null">-- Seleccionar --</option>
+                    <option [ngValue]="true">Sí</option>
+                    <option [ngValue]="false">No</option>
+                  </select>
+                </div>
+              }
+
+              <!-- Empresa de Mujeres (aparece solo si cotiza_bolsa fue respondido) -->
+              @if (integrante.cotiza_bolsa !== null) {
+                <div class="mt-3">
+                  <label class="mb-1 block text-xs font-medium text-slate-600">¿Es empresa de mujeres?</label>
+                  <select [(ngModel)]="integrante.acredita_mujeres"
+                    class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                    <option [ngValue]="null">-- Seleccionar --</option>
+                    <option [ngValue]="true">Sí</option>
+                    <option [ngValue]="false">No</option>
+                  </select>
+                </div>
+              }
+
+              <!-- Personas con Discapacidad (aparece solo si acredita_mujeres fue respondido) -->
+              @if (integrante.acredita_mujeres !== null) {
+                <div class="mt-3">
+                  <label class="mb-1 block text-xs font-medium text-slate-600">¿Está constituida por personas con discapacidad?</label>
+                  <select [(ngModel)]="integrante.acredita_discapacidad"
+                    class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                    <option [ngValue]="null">-- Seleccionar --</option>
+                    <option [ngValue]="true">Sí</option>
+                    <option [ngValue]="false">No</option>
+                  </select>
+                </div>
+              }
 
               @if (esPlural) {
                 <div class="mt-3 flex items-center justify-between">
